@@ -1,36 +1,36 @@
 import { ButtonLink } from "@/ui/Button";
 import { TARGET_ZONE } from "@/rules";
 
-// `live` marks steps that work in the current build; flip as milestones land.
 const STEPS = [
   {
     n: 1,
-    title: "Mark your plot on the map",
-    text: "Click the corners of the land on a real Bangkok map. Any shape works. Drag corners to fine-tune; the area updates as you go.",
-    live: true,
+    title: "Draw the plot",
+    text: "Click its corners on a real Bangkok map. Plotwise warns you if it crosses a road or a building, or sits outside the zone.",
     art: <DrawArt />,
   },
   {
     n: 2,
-    title: "Pick the road and building type",
-    text: "Tell us which side faces the road and how wide it is, then choose condo, office or hotel. These decide which rules apply.",
-    live: false,
+    title: "Road side and building type",
+    text: "Roads along the plot are picked up from the map; confirm the width. Choose condo, office or hotel.",
     art: <RoadArt />,
   },
   {
     n: 3,
-    title: "See the rules and the allowed 3D space",
-    text: "Every limit that applies (floor area, open space, setbacks, height) with the legal clause, plus the 3D volume you're allowed to build in.",
-    live: false,
+    title: "Rules and the 3D space allowed",
+    text: "Floor area, open space, setbacks, height and parking, each with its legal clause, plus the 3D volume you may build in.",
     art: <EnvelopeArt />,
   },
   {
     n: 4,
-    title: "Compare concept designs",
-    text: "Several building options that fit the plot, shown in 3D among the real neighbours, each with a pass/fail checklist.",
-    live: false,
+    title: "Three designs, each checked",
+    text: "A terraced block, a podium with a tower and a low-rise, in 3D among the neighbours. Each has a pass/fail checklist; click a row to see why on the model.",
     art: <DesignsArt />,
   },
+];
+
+const MODES = [
+  { name: "Simple", text: "One verdict (green, amber or red) and the change that would fix it. Made for phones." },
+  { name: "Expert", text: "Every input, editable assumption, check row and area table, plus side-by-side Compare." },
 ];
 
 export default function Landing() {
@@ -47,13 +47,13 @@ export default function Landing() {
       </header>
 
       <section className="mx-auto max-w-6xl px-4 pb-10 pt-8 sm:px-6 sm:pt-14">
-        <p className="reveal text-sm font-medium text-[#e4572e]">Plot feasibility, before you pay an architect</p>
+        <p className="reveal text-sm font-medium text-[#e4572e]">Plot feasibility for Bangkok zone {TARGET_ZONE.zoneCode}</p>
         <h1 className="reveal mt-2 max-w-3xl text-3xl font-semibold leading-tight tracking-tight sm:text-5xl" style={{ animationDelay: "80ms" }}>
           What can you build on your Bangkok plot?
         </h1>
         <p className="reveal mt-4 max-w-2xl text-base text-neutral-600 sm:text-lg" style={{ animationDelay: "160ms" }}>
-          Draw the land, and Plotwise works out how big and how tall a building the law allows, and what it could look
-          like. Here is how it works, in four steps.
+          Draw the land and Plotwise shows, live, how much floor area and how tall a building the law allows, the 3D
+          space it must fit in, and three designs checked rule by rule.
         </p>
         <div className="reveal mt-7 flex flex-wrap gap-3" style={{ animationDelay: "240ms" }}>
           <ButtonLink href="/tool?demo=1" variant="primary" className="px-5 py-2.5 text-base">
@@ -75,16 +75,7 @@ export default function Landing() {
             >
               <div className="aspect-[10/7] bg-neutral-100">{s.art}</div>
               <div className="flex flex-1 flex-col p-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-neutral-400">STEP {s.n}</span>
-                  <span
-                    className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${
-                      s.live ? "bg-emerald-100 text-emerald-700" : "bg-neutral-100 text-neutral-500"
-                    }`}
-                  >
-                    {s.live ? "Live now" : "Coming next"}
-                  </span>
-                </div>
+                <span className="text-xs font-semibold text-neutral-400">STEP {s.n}</span>
                 <h2 className="mt-1.5 font-semibold leading-snug">{s.title}</h2>
                 <p className="mt-1.5 text-sm text-neutral-600">{s.text}</p>
               </div>
@@ -92,14 +83,23 @@ export default function Landing() {
           ))}
         </ol>
 
-        <div className="mt-10 rounded-2xl bg-neutral-900 px-6 py-6 text-white sm:flex sm:items-center sm:justify-between">
+        <div className="mt-8 grid gap-4 sm:grid-cols-2">
+          {MODES.map((m) => (
+            <div key={m.name} className="rounded-2xl bg-white p-4 ring-1 ring-black/5">
+              <div className="font-semibold">{m.name} mode</div>
+              <p className="mt-1 text-sm text-neutral-600">{m.text}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-8 rounded-2xl bg-neutral-900 px-6 py-6 text-white sm:flex sm:items-center sm:justify-between">
           <div>
-            <div className="font-semibold">Ready? Start with step 1.</div>
+            <div className="font-semibold">A feasibility study, not a design.</div>
             <div className="mt-1 text-sm text-neutral-300">
-              On the map: press <b>Draw plot</b>, click each corner, then click the first corner again to finish.
+              Every number comes from the zoning plan and building law, with its source. An architect must check and sign.
             </div>
           </div>
-          <div className="mt-4 flex gap-3 sm:mt-0">
+          <div className="mt-4 flex shrink-0 gap-3 sm:mt-0">
             <ButtonLink href="/tool?demo=1" className="border-transparent">
               Demo plot
             </ButtonLink>

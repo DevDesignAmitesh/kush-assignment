@@ -274,6 +274,19 @@ export default function ClientShell() {
     const b = bestDesign(designs);
     if (b && useStore.getState().selectedDesign !== b.design.id) useStore.getState().setSelectedDesign(b.design.id);
   }, [uiMode, designs]);
+  // Expert on a phone: one bottom sheet with Inputs / Designs tabs (or hidden), so the map keeps the top half.
+  const [phoneSheet, setPhoneSheet] = useState<"inputs" | "designs" | "closed">("inputs");
+  // A proof opened from Simple's "Why?" (or a check row) belongs to the Designs tab.
+  const proof = useStore((s) => s.proof);
+  const [seenProof, setSeenProof] = useState(proof);
+  if (proof !== seenProof) {
+    setSeenProof(proof);
+    if (proof) setPhoneSheet("designs");
+  }
+  const selectedDesign = useStore((s) => s.selectedDesign);
+  const shownDesign = designs.find((d) => d.design.id === selectedDesign && d.design.buildable) ?? designs.find((d) => d.design.buildable);
+  const designsHint = shownDesign ? (shownDesign.summary.fail ? `${shownDesign.design.id} · ${shownDesign.summary.fail} fail` : `${shownDesign.design.id} · all pass`) : null;
+
   const near = site?.station?.nearestMassTransit;
   const place = near && near.distM < 1500 ? `near ${near.name} · ${TARGET_ZONE.zoneCode}` : `Bangkok · ${TARGET_ZONE.zoneCode}`;
 
@@ -337,12 +350,16 @@ export default function ClientShell() {
           }
         />
       ) : (
-      <header className="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-200 bg-white px-4 py-2.5">
-        <div className="flex items-center gap-3">
+      <header className="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-200 bg-white px-4 py-2.5 max-sm:gap-1.5 max-sm:px-2 max-sm:py-1.5">
+        <div className="flex items-center gap-3 max-sm:w-full max-sm:justify-between">
           <Link href="/" className="flex items-baseline gap-2" onClick={() => sound.click()}>
             <span className="font-semibold tracking-tight">Plotwise</span>
-            <span className="text-sm text-neutral-500">Bangkok · zone {TARGET_ZONE.zoneCode}</span>
+            <span className="text-sm text-neutral-500 max-sm:text-xs">Bangkok · zone {TARGET_ZONE.zoneCode}</span>
           </Link>
+          {/* Phone: the mode switch sits on the title row, the actions get one row below. */}
+          <div className="sm:hidden">
+            <ModeSwitch />
+          </div>
           <Link
             href="/"
             onClick={() => sound.click()}
@@ -361,7 +378,8 @@ export default function ClientShell() {
               <PenIcon /> {plot ? "Redraw plot" : "Draw plot"}
             </Button>
           )}
-          <Button disabled={!api || mode === "drawing"} onClick={() => api?.loadDemo()}>
+          {/* Phone: the demo button is in the Plot step (shown until a plot exists). */}
+          <Button className="max-sm:hidden" disabled={!api || mode === "drawing"} onClick={() => api?.loadDemo()}>
             Demo plot (Ari)
           </Button>
           <Button disabled={!api || !plot} onClick={() => api?.clear()}>
@@ -383,14 +401,17 @@ export default function ClientShell() {
           >
             {muted ? <MutedIcon /> : <SoundIcon />}
           </Button>
-          <ModeSwitch />
+          <div className="max-sm:hidden">
+            <ModeSwitch />
+          </div>
         </div>
       </header>
       )}
 
       <main className="relative flex-1 overflow-hidden">
         {/* The map stops at the right panel, so its controls and attribution stay visible and clickable. */}
-        <div className={`absolute inset-y-0 left-0 right-0 ${uiMode === "expert" ? "sm:right-[340px] max-sm:bottom-[45%]" : "ui-simple"}`}>
+        {/* Phone (Expert): the map ends at the bottom sheet (45 %), or at its tab bar when the sheet is hidden. */}
+        <div className={`absolute inset-y-0 left-0 right-0 ${uiMode === "expert" ? `sm:right-[340px] ${phoneSheet === "closed" ? "max-sm:bottom-10" : "max-sm:bottom-[45%]"}` : "ui-simple"}`}>
           <MapView onReady={onReady} />
         </div>
 
@@ -402,13 +423,45 @@ export default function ClientShell() {
           </>
         ) : (
         <>
-        {api && <div className="panel-in pointer-events-auto absolute left-4 top-4 max-h-[calc(100%-8rem)] w-80 max-w-[calc(100%-2rem)] overflow-y-auto rounded-xl bg-white/95 px-4 py-1.5 shadow-md ring-1 ring-black/5 max-sm:left-2 max-sm:top-2 max-sm:max-h-[42%] max-sm:w-[calc(100%-1rem)] max-sm:max-w-none" aria-label="Inputs">
+        {/* Phone: the sheet's tab bar. Desktop shows both panels side by side instead. */}
+        <div
+          className={`pointer-events-auto absolute inset-x-0 z-10 flex h-10 items-center gap-1 rounded-t-xl border-t border-neutral-200 bg-white px-2 shadow-[0_-4px_16px_rgba(0,0,0,0.08)] sm:hidden ${phoneSheet === "closed" ? "bottom-0" : "bottom-[calc(45%-2.5rem)]"}`}
+          role="tablist"
+          aria-label="Panels"
+        >
+          {(["inputs", "designs"] as const).map((t) => (
+            <button
+              key={t}
+              role="tab"
+              aria-selected={phoneSheet === t}
+              onClick={() => {
+                sound.click();
+                setPhoneSheet(t);
+              }}
+              className={`rounded-lg px-3 py-1.5 text-[12px] font-semibold transition-colors ${phoneSheet === t ? "bg-neutral-900 text-white" : "text-neutral-600"}`}
+            >
+              {t === "inputs" ? "Inputs" : "Designs"}
+              {t === "designs" && designsHint && <span className={`ml-1.5 font-normal ${phoneSheet === t ? "text-neutral-300" : "text-neutral-400"}`}>{designsHint}</span>}
+            </button>
+          ))}
+          <button
+            onClick={() => {
+              sound.click();
+              setPhoneSheet(phoneSheet === "closed" ? "inputs" : "closed");
+            }}
+            className="ml-auto rounded-lg px-2.5 py-1.5 text-[12px] font-semibold text-neutral-600"
+            aria-label={phoneSheet === "closed" ? "Show panel" : "Hide panel"}
+          >
+            {phoneSheet === "closed" ? "Show ▴" : "Hide ▾"}
+          </button>
+        </div>
+        {api && <div className={`panel-in pointer-events-auto absolute left-4 top-4 max-h-[calc(100%-8rem)] w-80 max-w-[calc(100%-2rem)] overflow-y-auto rounded-xl bg-white/95 px-4 py-1.5 shadow-md ring-1 ring-black/5 max-sm:inset-x-0 max-sm:bottom-0 max-sm:top-auto max-sm:h-[calc(45%-2.5rem)] max-sm:max-h-none max-sm:w-full max-sm:max-w-none max-sm:rounded-none max-sm:bg-white max-sm:shadow-none max-sm:ring-0 ${phoneSheet === "inputs" ? "" : "max-sm:hidden"}`} aria-label="Inputs">
           <ExpertSteps site={site} api={api} />
         </div>}
         <KpiStrip />
         <FooterLine />
 
-        <DesignPanel />
+        <DesignPanel phoneHidden={phoneSheet !== "designs"} />
         <CompareModal />
         <ViewControl api={api} />
         <Legend />

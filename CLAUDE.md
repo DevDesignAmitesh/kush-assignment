@@ -96,5 +96,5 @@ No React, DOM or MapLibre imports. Every rule number comes from `rules/bangkok-y
 - Overpass is not used: context comes from the vector tiles.
 - Road widths are estimates until the user confirms them.
 - Station classes follow a sourced allowlist.
-- Expert mode on phones leaves little map; Simple is the phone mode.
+- Expert on phones: one bottom sheet with Inputs / Designs tabs (not both at once); Simple is the main phone mode.
 - 10 ha plots are unmeasured on real hardware.

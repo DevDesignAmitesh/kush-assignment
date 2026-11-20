@@ -22,7 +22,7 @@ const STATUS: Record<CheckStatus, string> = {
 };
 
 /** Right panel: one design at a time (DESIGN_DIRECTION §3). */
-export function DesignPanel() {
+export function DesignPanel({ phoneHidden = false }: { phoneHidden?: boolean }) {
   const designs = useStore((s) => s.designs);
   const selected = useStore((s) => s.selectedDesign);
   const select = useStore((s) => s.setSelectedDesign);
@@ -82,8 +82,11 @@ export function DesignPanel() {
   }
 
   return (
-    <aside className="pointer-events-auto absolute bottom-0 right-0 top-0 w-[340px] overflow-y-auto border-l border-neutral-200 bg-white px-4 py-3 text-sm max-sm:top-auto max-sm:h-[45%] max-sm:w-full max-sm:rounded-t-xl max-sm:border-l-0 max-sm:border-t max-sm:shadow-[0_-4px_16px_rgba(0,0,0,0.08)]" aria-label="Designs">
-      <div className="mb-2 text-[13px] font-semibold text-neutral-800">Designs</div>
+    <aside className={`pointer-events-auto absolute bottom-0 right-0 top-0 w-[340px] overflow-y-auto border-l border-neutral-200 bg-white px-4 py-3 text-sm max-sm:top-auto max-sm:h-[calc(45%-2.5rem)] max-sm:w-full max-sm:border-l-0 ${phoneHidden ? "max-sm:hidden" : ""}`}
+      aria-label="Designs"
+    >
+      {/* On a phone the sheet's tab bar already says "Designs". */}
+      <div className="mb-2 text-[13px] font-semibold text-neutral-800 max-sm:hidden">Designs</div>
       {body}
     </aside>
   );

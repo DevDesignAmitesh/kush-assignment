@@ -191,6 +191,8 @@ export default function MapView({ onReady }: { onReady?: (api: MapApi) => void }
     const pad = (desk: { top: number; bottom: number; left: number; right: number }) => {
       const { clientWidth: w, clientHeight: h } = map.getContainer();
       if (w >= 640) return desk;
+      // Expert on a phone: the panels sit below the map (bottom sheet), so the whole map is free.
+      if (st().uiMode === "expert") return { top: 32, bottom: 32, left: 24, right: 24 };
       return { top: Math.round(h * 0.22), bottom: Math.round(h * 0.36), left: 24, right: 24 };
     };
     const fitTo = (ring: LngLat[], bearing = map.getBearing(), pitch = map.getPitch(), duration = VIEW_MS) => {
