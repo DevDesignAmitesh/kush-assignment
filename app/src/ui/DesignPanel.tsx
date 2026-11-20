@@ -230,56 +230,151 @@ function Section({ d }: { d: DesignResult }) {
   );
 }
 
-/** Compare table (6 columns), hidden until asked for. No cost or income columns (no sourced data). */
+/**
+ * Compare A / B / C: one column per design, one row per measure (fits a phone). A design that can't be built
+ * shows its reason once instead of a column of dashes. No cost or income rows (no sourced data).
+ */
 export function CompareModal() {
   const open = useStore((s) => s.compareOpen);
   const setOpen = useStore((s) => s.setCompareOpen);
   const designs = useStore((s) => s.designs);
+  const selected = useStore((s) => s.selectedDesign);
+  const select = useStore((s) => s.setSelectedDesign);
+  const type = useStore((s) => s.buildingType);
   const maxGfa = useStore((s) => s.compute?.far.maxGfaM2 ?? 0);
   if (!open) return null;
-  const cols = ["Floor area", "% of max", "Height", "Storeys", "Units / rooms", "Parking"];
+
+  const progLabel = type === "condo" ? "Homes" : type === "hotel" ? "Rooms" : "Net office area";
+  const rows: { label: string; cell: (d: DesignResult) => React.ReactNode }[] = [
+    { label: "Floor area", cell: (d) => <span className="font-semibold">{nf.format(d.design.gfaM2)} m²</span> },
+    { label: "Of the max allowed", cell: (d) => (maxGfa ? `${Math.round((d.design.gfaM2 / maxGfa) * 100)} %` : "—") },
+    { label: "Height", cell: (d) => `${n1.format(d.design.heightM)} m · ${d.design.storeys} floors` },
+    {
+      label: progLabel,
+      cell: (d) => {
+        const p = d.design.programme;
+        return p.units !== undefined ? nf.format(p.units) : p.rooms !== undefined ? nf.format(p.rooms) : `${nf.format(p.netAreaM2)} m²`;
+      },
+    },
+    {
+      label: "Parking",
+      cell: (d) => {
+        const short = d.design.parking.provided < d.design.parking.required;
+        return (
+          <span className={short ? "font-semibold text-red-600" : ""}>
+            {d.design.parking.provided} <span className="font-normal text-neutral-400">needs {d.design.parking.required}</span>
+          </span>
+        );
+      },
+    },
+    { label: "Limited by", cell: (d) => <span className="text-neutral-700">{d.design.limitedBy?.label ?? "—"}</span> },
+    {
+      label: "Checks",
+      // Same count as the panel's "Checks 10/12 ✓" (info rows count in the total, as there).
+      cell: (d) =>
+        d.summary.fail ? (
+          <span className="font-semibold text-red-600">{d.summary.fail} fail</span>
+        ) : (
+          <span className="font-semibold text-emerald-700">
+            {d.summary.pass}/{d.checks.length} ✓
+          </span>
+        ),
+    },
+  ];
+  const close = () => setOpen(false);
+
   return (
-    <div className="pointer-events-auto absolute inset-0 z-20 flex items-start justify-center bg-black/20 pt-24" onClick={() => setOpen(false)}>
-      <div className="panel-in w-[640px] max-w-[calc(100%-2rem)] rounded-xl bg-white p-4 shadow-xl ring-1 ring-black/10" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Compare designs">
+    <div className="pointer-events-auto absolute inset-0 z-20 flex items-start justify-center bg-black/25 pt-20 max-sm:items-end max-sm:pt-0" onClick={close}>
+      <div
+        className="panel-in max-h-[calc(100%-6rem)] w-[680px] max-w-[calc(100%-2rem)] overflow-y-auto rounded-xl bg-white p-4 shadow-xl ring-1 ring-black/10 max-sm:max-h-[85%] max-sm:max-w-none max-sm:w-full max-sm:rounded-b-none max-sm:p-3"
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-label="Compare designs"
+      >
         <div className="mb-2 flex items-center justify-between">
           <span className="text-[13px] font-semibold">Compare designs</span>
-          <button onClick={() => setOpen(false)} className="rounded px-2 text-neutral-500 hover:bg-neutral-100" aria-label="Close">
+          <button onClick={close} className="rounded px-2 py-0.5 text-neutral-500 hover:bg-neutral-100" aria-label="Close">
             ✕
           </button>
         </div>
-        <table className="w-full text-[12px] tabular-nums">
+        <table className="w-full table-fixed text-[12px] tabular-nums max-sm:text-[11.5px]">
+          <colgroup>
+            <col className="w-[22%] max-sm:w-[24%]" />
+            {designs.map((d) => (
+              <col key={d.design.id} />
+            ))}
+          </colgroup>
           <thead>
-            <tr className="text-left text-neutral-500">
-              <th className="py-1 pr-2 font-medium">Design</th>
-              {cols.map((c) => (
-                <th key={c} className="py-1 pr-2 text-right font-medium">
-                  {c}
-                </th>
-              ))}
+            <tr>
+              <th />
+              {designs.map((d) => {
+                const on = d.design.id === selected && d.design.buildable;
+                return (
+                  <th key={d.design.id} className={`rounded-t-lg px-2 pb-1.5 pt-2 text-left align-top ${on ? "bg-[#e4572e]/10" : ""}`}>
+                    <div className="text-[13px] font-bold" style={on ? { color: ACCENT } : undefined}>
+                      {d.design.id}
+                    </div>
+                    <div className="font-medium leading-tight text-neutral-600">{d.design.name}</div>
+                  </th>
+                );
+              })}
             </tr>
           </thead>
           <tbody>
-            {designs.map((d) => {
-              const g = d.design;
-              const ok = g.buildable;
-              const prog = g.programme.units !== undefined ? `${nf.format(g.programme.units)} units` : g.programme.rooms !== undefined ? `${nf.format(g.programme.rooms)} rooms` : "—";
-              return (
-                <tr key={g.id} className="border-t border-neutral-100">
-                  <td className="py-1.5 pr-2 font-semibold">
-                    {g.id} · {g.name}
+            {rows.map((r, i) => (
+              <tr key={r.label} className="border-t border-neutral-100">
+                <th className="py-1.5 pr-2 text-left align-top font-medium text-neutral-500">{r.label}</th>
+                {designs.map((d) => {
+                  const on = d.design.id === selected && d.design.buildable;
+                  if (!d.design.buildable) {
+                    // One merged cell with the reason, in the first row only.
+                    return i === 0 ? (
+                      <td key={d.design.id} rowSpan={rows.length} className="px-2 py-1.5 align-top">
+                        <div className="rounded-lg bg-neutral-100 p-2 text-[11.5px] leading-snug text-neutral-600 max-sm:p-1.5 max-sm:text-[10.5px]">
+                          <div className="mb-0.5 font-semibold text-neutral-700">Not possible here</div>
+                          {(d.design.reason ?? "This design does not fit this plot.").replace(/^Not available:\s*/, "")}
+                        </div>
+                      </td>
+                    ) : null;
+                  }
+                  return (
+                    <td key={d.design.id} className={`px-2 py-1.5 align-top ${on ? "bg-[#e4572e]/10" : ""}`}>
+                      {r.cell(d)}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+            <tr>
+              <th />
+              {designs.map((d) => {
+                const on = d.design.id === selected && d.design.buildable;
+                return (
+                  <td key={d.design.id} className={`rounded-b-lg px-2 pb-2 pt-1 ${on ? "bg-[#e4572e]/10" : ""}`}>
+                    {d.design.buildable &&
+                      (on ? (
+                        <span className="block py-1 text-center text-[11px] font-semibold" style={{ color: ACCENT }}>
+                          On the map
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            sound.click();
+                            select(d.design.id);
+                            close();
+                          }}
+                          className="w-full rounded-md py-1 text-[11px] font-semibold ring-1 ring-neutral-300 transition-[transform,background-color] hover:bg-neutral-50 active:scale-95"
+                        >
+                          Show on map
+                        </button>
+                      ))}
                   </td>
-                  <td className="py-1.5 pr-2 text-right">{ok ? `${nf.format(g.gfaM2)} m²` : "—"}</td>
-                  <td className="py-1.5 pr-2 text-right">{ok && maxGfa ? `${Math.round((g.gfaM2 / maxGfa) * 100)} %` : "—"}</td>
-                  <td className="py-1.5 pr-2 text-right">{ok ? `${n1.format(g.heightM)} m` : "—"}</td>
-                  <td className="py-1.5 pr-2 text-right">{ok ? g.storeys : "—"}</td>
-                  <td className="py-1.5 pr-2 text-right">{ok ? prog : "—"}</td>
-                  <td className={`py-1.5 pr-2 text-right ${ok && g.parking.provided < g.parking.required ? "font-semibold text-red-600" : ""}`}>{ok ? `${g.parking.provided} / ${g.parking.required}` : "—"}</td>
-                </tr>
-              );
-            })}
+                );
+              })}
+            </tr>
           </tbody>
         </table>
-        <div className="mt-2 text-[10.5px] text-neutral-400">Parking = provided / required stalls. Not available designs show —.</div>
+        <div className="mt-2 text-[10.5px] text-neutral-400">Parking: stalls provided, and the number the law requires.</div>
       </div>
     </div>
   );

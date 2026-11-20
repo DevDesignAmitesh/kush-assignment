@@ -245,3 +245,11 @@ body {
     display: none;
   }
 }
+
+/* horizontal pill rows (landing filters) */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}

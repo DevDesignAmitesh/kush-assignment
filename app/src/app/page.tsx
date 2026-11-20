@@ -1,221 +1,163 @@
-import { ButtonLink } from "@/ui/Button";
+import Link from "next/link";
+import { Geist, Instrument_Serif } from "next/font/google";
 import { TARGET_ZONE } from "@/rules";
+import { LandingList } from "./LandingList";
 
-const STEPS = [
-  {
-    n: 1,
-    title: "Draw the plot",
-    text: "Click its corners on a real Bangkok map. Plotwise warns you if it crosses a road or a building, or sits outside the zone.",
-    art: <DrawArt />,
-  },
-  {
-    n: 2,
-    title: "Road side and building type",
-    text: "Roads along the plot are picked up from the map; confirm the width. Choose condo, office or hotel.",
-    art: <RoadArt />,
-  },
-  {
-    n: 3,
-    title: "Rules and the 3D space allowed",
-    text: "Floor area, open space, setbacks, height and parking, each with its legal clause, plus the 3D volume you may build in.",
-    art: <EnvelopeArt />,
-  },
-  {
-    n: 4,
-    title: "Three designs, each checked",
-    text: "A terraced block, a podium with a tower and a low-rise, in 3D among the neighbours. Each has a pass/fail checklist; click a row to see why on the model.",
-    art: <DesignsArt />,
-  },
-];
+// Landing-page type only (the tool keeps Inter): a sans body and an italic serif display face.
+const sans = Geist({ subsets: ["latin"], variable: "--font-geist" });
+const serif = Instrument_Serif({ subsets: ["latin"], weight: "400", style: ["normal", "italic"], variable: "--font-serif" });
 
-const MODES = [
-  { name: "Simple", text: "One verdict (green, amber or red) and the change that would fix it. Made for phones." },
-  { name: "Expert", text: "Every input, editable assumption, check row and area table, plus side-by-side Compare." },
-];
+const pill = "inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-[13px] font-semibold transition-[transform,background-color] active:scale-95";
 
 export default function Landing() {
   return (
-    <div className="min-h-dvh bg-neutral-50 text-neutral-900">
-      <header className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
-        <div className="flex items-baseline gap-2">
-          <span className="font-semibold tracking-tight">Plotwise</span>
-          <span className="text-sm text-neutral-500">Bangkok · zone {TARGET_ZONE.zoneCode}</span>
-        </div>
-        <ButtonLink href="/tool" variant="ghost">
-          Skip to the tool →
-        </ButtonLink>
+    <div className={`${sans.variable} ${serif.variable} min-h-dvh bg-[#f4f2ee] text-[#151515]`} style={{ fontFamily: "var(--font-geist), ui-sans-serif, system-ui, sans-serif" }}>
+      <header className="mx-auto flex max-w-6xl items-center justify-between px-4 py-5 sm:px-6">
+        <Link href="/" className="flex items-center gap-2">
+          <LogoMark />
+          <span className="text-[27px] italic leading-none tracking-tight" style={{ fontFamily: "var(--font-serif), serif" }}>
+            Plotwise
+          </span>
+        </Link>
+        <nav className="flex items-center gap-2">
+          <span className={`${pill} bg-[#f5c542] text-[#151515] max-sm:hidden`}>Zone {TARGET_ZONE.zoneCode}</span>
+          <Link href="/tool?demo=1" className={`${pill} bg-[#ebe8e2] text-[#151515] hover:bg-[#e2ded6] max-sm:hidden`}>
+            Demo plot
+          </Link>
+          <Link href="/tool" className={`${pill} bg-[#151515] text-white shadow-sm hover:bg-black`}>
+            Open the tool
+          </Link>
+        </nav>
       </header>
 
-      <section className="mx-auto max-w-6xl px-4 pb-10 pt-8 sm:px-6 sm:pt-14">
-        <p className="reveal text-sm font-medium text-[#e4572e]">Plot feasibility for Bangkok zone {TARGET_ZONE.zoneCode}</p>
-        <h1 className="reveal mt-2 max-w-3xl text-3xl font-semibold leading-tight tracking-tight sm:text-5xl" style={{ animationDelay: "80ms" }}>
-          What can you build on your Bangkok plot?
-        </h1>
-        <p className="reveal mt-4 max-w-2xl text-base text-neutral-600 sm:text-lg" style={{ animationDelay: "160ms" }}>
-          Draw the land and Plotwise shows, live, how much floor area and how tall a building the law allows, the 3D
-          space it must fit in, and three designs checked rule by rule.
-        </p>
-        <div className="reveal mt-7 flex flex-wrap gap-3" style={{ animationDelay: "240ms" }}>
-          <ButtonLink href="/tool?demo=1" variant="primary" className="px-5 py-2.5 text-base">
-            Try it with a demo plot →
-          </ButtonLink>
-          <ButtonLink href="/tool" className="px-5 py-2.5 text-base">
-            Draw my own plot
-          </ButtonLink>
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6">
-        <ol className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {STEPS.map((s, i) => (
-            <li
-              key={s.n}
-              className="reveal flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/5 transition-shadow hover:shadow-md"
-              style={{ animationDelay: `${320 + i * 90}ms` }}
+      <main className="mx-auto max-w-6xl px-4 pb-8 sm:px-6">
+        <div className="overflow-hidden rounded-[22px] bg-[#faf9f7] shadow-[0_1px_3px_rgba(0,0,0,0.04)] ring-1 ring-black/[0.06]">
+          <section className="relative isolate flex min-h-[300px] flex-col items-center justify-center overflow-hidden bg-[#0d0d0d] px-5 py-14 text-center sm:min-h-[420px]">
+            <HeroArt />
+            <h1
+              className="reveal text-[44px] italic leading-[1.05] text-[#f5d87a] drop-shadow-[0_2px_12px_rgba(0,0,0,0.6)] sm:text-[64px]"
+              style={{ fontFamily: "var(--font-serif), serif" }}
             >
-              <div className="aspect-[10/7] bg-neutral-100">{s.art}</div>
-              <div className="flex flex-1 flex-col p-4">
-                <span className="text-xs font-semibold text-neutral-400">STEP {s.n}</span>
-                <h2 className="mt-1.5 font-semibold leading-snug">{s.title}</h2>
-                <p className="mt-1.5 text-sm text-neutral-600">{s.text}</p>
-              </div>
-            </li>
-          ))}
-        </ol>
-
-        <div className="mt-8 grid gap-4 sm:grid-cols-2">
-          {MODES.map((m) => (
-            <div key={m.name} className="rounded-2xl bg-white p-4 ring-1 ring-black/5">
-              <div className="font-semibold">{m.name} mode</div>
-              <p className="mt-1 text-sm text-neutral-600">{m.text}</p>
+              What can you build here?
+            </h1>
+            <p className="reveal mt-4 max-w-xl text-[15px] font-medium leading-snug text-white/90 drop-shadow-[0_1px_6px_rgba(0,0,0,0.8)] sm:text-[17px]" style={{ animationDelay: "80ms" }}>
+              Draw a Bangkok plot in zone {TARGET_ZONE.zoneCode}. See, live, the floor area and height the law allows, the 3D space it
+              must fit in, and three designs checked rule by rule.
+            </p>
+            <div className="reveal mt-7 flex flex-wrap justify-center gap-3" style={{ animationDelay: "160ms" }}>
+              <Link href="/tool?demo=1" className={`${pill} bg-[#f5c542] px-5 py-2.5 text-[14px] text-[#151515] hover:bg-[#f0b92a]`}>
+                Try the demo plot →
+              </Link>
+              <Link href="/tool" className={`${pill} bg-white/10 px-5 py-2.5 text-[14px] text-white ring-1 ring-white/30 backdrop-blur hover:bg-white/20`}>
+                Draw my own plot
+              </Link>
             </div>
-          ))}
-        </div>
+          </section>
 
-        <div className="mt-8 rounded-2xl bg-neutral-900 px-6 py-6 text-white sm:flex sm:items-center sm:justify-between">
-          <div>
-            <div className="font-semibold">A feasibility study, not a design.</div>
-            <div className="mt-1 text-sm text-neutral-300">
-              Every number comes from the zoning plan and building law, with its source. An architect must check and sign.
-            </div>
-          </div>
-          <div className="mt-4 flex shrink-0 gap-3 sm:mt-0">
-            <ButtonLink href="/tool?demo=1" className="border-transparent">
-              Demo plot
-            </ButtonLink>
-            <ButtonLink href="/tool" variant="primary" className="bg-[#e4572e] hover:bg-[#cf4a23]">
+          <LandingList />
+
+          <div className="px-4 pb-8 sm:px-12">
+            <Link href="/tool" className="block rounded-2xl bg-[#efede8] py-3.5 text-center text-[15px] font-medium text-[#252525] transition-colors hover:bg-[#e6e3dc]">
               Open the tool →
-            </ButtonLink>
+            </Link>
           </div>
         </div>
-      </section>
+      </main>
+
+      <footer className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 px-4 pb-8 text-[13px] text-[#6b6b6b] sm:px-6">
+        <span className="flex items-center gap-2">
+          <LogoMark small />
+          <span className="italic text-[#151515]" style={{ fontFamily: "var(--font-serif), serif", fontSize: 18 }}>
+            Plotwise
+          </span>
+          · Bangkok zone {TARGET_ZONE.zoneCode}
+        </span>
+        <span>A feasibility study, not a design. An architect must check and sign.</span>
+      </footer>
     </div>
   );
 }
 
-/* ---------- step illustrations (inline SVG, looping CSS animations) ---------- */
-
-const ACC = "#e4572e";
-
-function Streets() {
+/** A plot outline with a rising block: the brand mark. */
+function LogoMark({ small }: { small?: boolean }) {
+  const s = small ? 18 : 26;
   return (
-    <g stroke="#e5e5e5" strokeWidth="6" fill="none">
-      <path d="M-10 118 L210 88" />
-      <path d="M40 -10 L70 150" />
-      <path d="M150 -10 L170 150" strokeWidth="4" />
+    <svg width={s} height={s} viewBox="0 0 26 26" aria-hidden>
+      <path d="M3 17 L13 22 L23 17 L13 12 Z" fill="#e4a11b" opacity="0.35" />
+      <path d="M8 15.5 V7 L13 9.5 V18 Z" fill="#e4a11b" />
+      <path d="M13 9.5 L18 7 V15.5 L13 18 Z" fill="#c9850c" />
+      <path d="M8 7 L13 4.5 L18 7 L13 9.5 Z" fill="#f5c542" />
+    </svg>
+  );
+}
+
+/* ---------- hero: a night city in halftone grey, the allowed space glowing in the middle ---------- */
+
+/** Isometric box: footprint w×d at ground (x, y), height h. */
+function Box({ x, y, w, d, h, tone, opacity = 1 }: { x: number; y: number; w: number; d: number; h: number; tone: number; opacity?: number }) {
+  const dx = d * 0.8;
+  const dy = d * 0.45;
+  const g = (k: number) => `rgb(${k},${k},${k})`;
+  return (
+    <g opacity={opacity}>
+      <polygon points={`${x},${y} ${x + w},${y} ${x + w},${y - h} ${x},${y - h}`} fill={g(tone)} />
+      <polygon points={`${x + w},${y} ${x + w + dx},${y - dy} ${x + w + dx},${y - h - dy} ${x + w},${y - h}`} fill={g(tone - 28)} />
+      <polygon points={`${x},${y - h} ${x + w},${y - h} ${x + w + dx},${y - h - dy} ${x + dx},${y - h - dy}`} fill={g(tone + 30)} />
     </g>
   );
 }
 
-function DrawArt() {
-  const pts = [
-    [62, 30],
-    [138, 24],
-    [150, 82],
-    [80, 96],
-  ];
-  return (
-    <svg viewBox="0 0 200 140" className="h-full w-full" aria-hidden>
-      <Streets />
-      <polygon points={pts.map((p) => p.join(",")).join(" ")} fill={ACC} fillOpacity="0.15" className="fill-late" />
-      <polygon points={pts.map((p) => p.join(",")).join(" ")} fill="none" stroke={ACC} strokeWidth="2.5" strokeLinejoin="round" className="draw-path" />
-      {pts.map(([x, y], i) => (
-        <circle key={i} cx={x} cy={y} r="4.5" fill="#fff" stroke={ACC} strokeWidth="2" className="pop" style={{ animationDelay: `${i * 0.5}s` }} />
-      ))}
-    </svg>
-  );
-}
+const CITY: [number, number, number, number, number, number][] = [
+  // x, y, w, d, h, tone
+  [20, 300, 70, 50, 150, 120], [110, 330, 60, 40, 90, 140], [190, 290, 80, 50, 210, 105], [60, 420, 90, 60, 120, 150],
+  [180, 440, 70, 50, 70, 165], [300, 470, 80, 40, 60, 150], [700, 470, 90, 50, 80, 150], [800, 300, 70, 50, 190, 110],
+  [880, 330, 60, 40, 110, 135], [960, 290, 90, 60, 230, 100], [850, 440, 90, 60, 130, 155], [980, 450, 80, 50, 80, 165],
+  [1060, 330, 60, 50, 140, 125], [290, 330, 60, 40, 130, 125], [730, 340, 50, 40, 150, 120],
+];
 
-function RoadArt() {
+function HeroArt() {
   return (
-    <svg viewBox="0 0 200 140" className="h-full w-full" aria-hidden>
-      <rect x="0" y="100" width="200" height="22" fill="#d4d4d4" />
-      <path d="M0 111 H200" stroke="#fff" strokeWidth="1.5" strokeDasharray="8 6" />
-      <polygon points="50,30 150,30 150,96 50,96" fill={ACC} fillOpacity="0.12" stroke={ACC} strokeWidth="2" />
-      <path d="M50 96 H150" stroke={ACC} strokeWidth="5" strokeLinecap="round" className="blink-edge" />
-      <g fontSize="9" fontFamily="sans-serif" fontWeight="600">
-        {["Condo", "Office", "Hotel"].map((t, i) => (
-          <g key={t} className="cycle" style={{ animationDelay: `${i * 1.5}s` }}>
-            <rect x={38 + i * 43} y="8" width="38" height="15" rx="7.5" fill="#171717" />
-            <text x={57 + i * 43} y="18.5" textAnchor="middle" fill="#fff">
-              {t}
-            </text>
-          </g>
-        ))}
+    <svg className="absolute inset-0 -z-10 h-full w-full" viewBox="0 0 1100 480" preserveAspectRatio="xMidYMid slice" aria-hidden>
+      <defs>
+        <pattern id="dots" width="6" height="6" patternUnits="userSpaceOnUse">
+          <circle cx="3" cy="3" r="1.1" fill="#000" opacity="0.55" />
+        </pattern>
+        <radialGradient id="glow" cx="50%" cy="58%" r="45%">
+          <stop offset="0%" stopColor="#22d3ee" stopOpacity="0.22" />
+          <stop offset="100%" stopColor="#22d3ee" stopOpacity="0" />
+        </radialGradient>
+        <radialGradient id="vignette" cx="50%" cy="40%" r="60%">
+          <stop offset="40%" stopColor="#0d0d0d" stopOpacity="0.55" />
+          <stop offset="100%" stopColor="#0d0d0d" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      {/* streets */}
+      <g stroke="#2a2a2a" strokeWidth="18" fill="none">
+        <path d="M-20 400 L1120 330" />
+        <path d="M420 -20 L560 500" />
       </g>
-    </svg>
-  );
-}
-
-/** Isometric box helper: footprint w×d at ground y, height h, offset back by `back`. */
-function IsoBox({ x, y, w, d, h, fill, cls, delay }: { x: number; y: number; w: number; d: number; h: number; fill: string; cls?: string; delay?: string }) {
-  const dx = d * 0.7;
-  const dy = d * 0.4;
-  const top = `${x},${y - h} ${x + w},${y - h} ${x + w + dx},${y - h - dy} ${x + dx},${y - h - dy}`;
-  const front = `${x},${y} ${x + w},${y} ${x + w},${y - h} ${x},${y - h}`;
-  const side = `${x + w},${y} ${x + w + dx},${y - dy} ${x + w + dx},${y - h - dy} ${x + w},${y - h}`;
-  return (
-    <g className={cls} style={delay ? { animationDelay: delay } : undefined}>
-      <polygon points={front} fill={fill} fillOpacity="0.85" />
-      <polygon points={side} fill={fill} fillOpacity="0.6" />
-      <polygon points={top} fill={fill} fillOpacity="1" />
-    </g>
-  );
-}
-
-function EnvelopeArt() {
-  // Terraces stepping back from the road (front), like the height-vs-road rule.
-  const tiers = [
-    { y: 120, h: 22, back: 0 },
-    { y: 98, h: 20, back: 6 },
-    { y: 78, h: 20, back: 12 },
-    { y: 58, h: 18, back: 18 },
-  ];
-  return (
-    <svg viewBox="0 0 200 140" className="h-full w-full" aria-hidden>
-      <rect x="0" y="122" width="200" height="18" fill="#d4d4d4" />
-      {tiers.map((t, i) => (
-        <IsoBox key={i} x={45 + t.back * 0.7} y={t.y - t.back * 0.4} w={90} d={40 - t.back} h={t.h} fill="#22d3ee" cls="rise" delay={`${i * 0.35}s`} />
+      {CITY.map(([x, y, w, d, h, t], i) => (
+        <Box key={i} x={x} y={y} w={w} d={d} h={h} tone={t} />
       ))}
-    </svg>
-  );
-}
-
-function DesignsArt() {
-  return (
-    <svg viewBox="0 0 200 140" className="h-full w-full" aria-hidden>
-      <IsoBox x={18} y={120} w={44} d={26} h={44} fill="#a3a3a3" cls="rise" />
-      <IsoBox x={92} y={120} w={44} d={26} h={22} fill="#a3a3a3" cls="rise" delay="0.3s" />
-      <IsoBox x={100} y={98} w={22} d={18} h={60} fill="#737373" cls="rise" delay="0.6s" />
-      <g className="tick-in" style={{ animationDelay: "1s" }}>
-        <rect x="150" y="30" width="44" height="54" rx="5" fill="#fff" stroke="#e5e5e5" />
-        {[0, 1, 2, 3].map((i) => (
-          <g key={i}>
-            <path d={`M156 ${42 + i * 11} l3 3 l5 -6`} stroke="#059669" strokeWidth="2" fill="none" />
-            <rect x="168" y={39 + i * 11} width="20" height="4" rx="2" fill="#e5e5e5" />
-          </g>
-        ))}
-      </g>
+      {/* the plot and its allowed space, stepping back like the sky plane */}
+      <rect x="0" y="0" width="1100" height="480" fill="url(#glow)" />
+      <polygon points="470,440 610,440 690,395 550,395" fill="none" stroke="#e4572e" strokeWidth="3" />
+      {[0, 1, 2, 3].map((i) => (
+        <g key={i} opacity="0.75">
+          <polygon
+            points={`${480 + i * 8},${436 - i * 52} ${600 - i * 4},${436 - i * 52} ${600 - i * 4},${384 - i * 52} ${480 + i * 8},${384 - i * 52}`}
+            fill="#22d3ee"
+            fillOpacity="0.55"
+          />
+          <polygon
+            points={`${600 - i * 4},${436 - i * 52} ${672 - i * 10},${396 - i * 50} ${672 - i * 10},${344 - i * 50} ${600 - i * 4},${384 - i * 52}`}
+            fill="#0891b2"
+            fillOpacity="0.55"
+          />
+        </g>
+      ))}
+      <rect x="0" y="0" width="1100" height="480" fill="url(#dots)" />
+      <rect x="0" y="0" width="1100" height="480" fill="url(#vignette)" />
     </svg>
   );
 }
