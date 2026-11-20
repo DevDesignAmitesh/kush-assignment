@@ -179,6 +179,28 @@ function nameNear(line: XY[], names: { name: string; xy: XY[] }[]): string | nul
   return best;
 }
 
+/** Name of the road at the point of `seg` nearest to `from`, among name lines running the same way (< the road-edge angle). */
+function nameFacing(from: XY, seg: [XY, XY], names: { name: string; xy: XY[] }[]): string | null {
+  const [p, q] = seg;
+  const vx = q[0] - p[0];
+  const vy = q[1] - p[1];
+  const len2 = vx * vx + vy * vy || 1;
+  const t = Math.max(0, Math.min(1, ((from[0] - p[0]) * vx + (from[1] - p[1]) * vy) / len2));
+  const at: XY = [p[0] + t * vx, p[1] + t * vy];
+  let best: string | null = null;
+  let bestD = 15; // metres, as nameNear
+  for (const n of names) {
+    for (let j = 0; j + 1 < n.xy.length; j++) {
+      const d = pointSegDist(at, n.xy[j], n.xy[j + 1]);
+      if (d < bestD && angleBetween(seg, [n.xy[j], n.xy[j + 1]]) < SITE_LIMITS.roadEdgeMaxAngleDeg) {
+        bestD = d;
+        best = n.name;
+      }
+    }
+  }
+  return best;
+}
+
 function minDistLineToRing(line: XY[], ring: XY[]): number {
   let m = Infinity;
   const es = edges(ring);
@@ -309,7 +331,9 @@ function suggestRoadEdges(
         if (angleBetween([a, b], [p, q]) < SITE_LIMITS.roadEdgeMaxAngleDeg) best = { d, cls: r.cls, seg: [p, q] };
       }
     }
-    if (best) out.push({ edge: i, distM: best.d, roadClass: best.cls, name: nameNear([best.seg[0], best.seg[1]], names) });
+    // Name the road where the edge faces it, not anywhere along the segment: a long segment can reach a junction,
+    // where the cross street's name line touches it too (the demo lot got "Soi Ari" for Phahon Yothin Road).
+    if (best) out.push({ edge: i, distM: best.d, roadClass: best.cls, name: nameFacing(mid, best.seg, names) ?? nameNear([best.seg[0], best.seg[1]], names) });
   });
   return out;
 }

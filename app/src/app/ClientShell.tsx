@@ -22,6 +22,7 @@ import { Toast } from "@/ui/Toast";
 import { sound } from "@/ui/sound";
 import { checkSite } from "@/engine/siteChecks";
 import { TARGET_ZONE } from "@/rules";
+import { startTour, Tour, TourMapLayer, tourStepId } from "@/ui/Tour";
 
 const MapView = dynamic(() => import("@/map/MapView"), {
   ssr: false,
@@ -283,6 +284,12 @@ export default function ClientShell() {
     setSeenProof(proof);
     if (proof) setPhoneSheet("designs");
   }
+  const tourAt = tourStepId(useStore((s) => s.tourStep));
+  const [seenTour, setSeenTour] = useState(tourAt);
+  if (tourAt !== seenTour) {
+    setSeenTour(tourAt);
+    if (tourAt === "designs" || tourAt === "compare") setPhoneSheet("designs");
+  }
   const selectedDesign = useStore((s) => s.selectedDesign);
   const shownDesign = designs.find((d) => d.design.id === selectedDesign && d.design.buildable) ?? designs.find((d) => d.design.buildable);
   const designsHint = shownDesign ? (shownDesign.summary.fail ? `${shownDesign.design.id} · ${shownDesign.summary.fail} fail` : `${shownDesign.design.id} · all pass`) : null;
@@ -327,6 +334,11 @@ export default function ClientShell() {
       return;
     }
     if (code) useStore.getState().showToast("That link could not be read; start a new plot", "error");
+    if (new URLSearchParams(window.location.search).get("tour") === "1") {
+      window.history.replaceState(null, "", window.location.pathname + window.location.hash);
+      startTour();
+      return;
+    }
     if (new URLSearchParams(window.location.search).get("demo") === "1") {
       api.loadDemo();
       window.history.replaceState(null, "", window.location.pathname + window.location.hash); // keep #mode=…
@@ -340,6 +352,10 @@ export default function ClientShell() {
           place={place}
           undo={
             <div className="flex" role="group" aria-label="History">
+              <Button variant="ghost" className="px-2 text-[12px]" onClick={startTour} title="Guided tour" aria-label="Guided tour">
+                <span className="max-sm:hidden">Tour</span>
+                <span className="flex h-5 w-5 items-center justify-center rounded-full text-[12px] font-bold ring-1 ring-neutral-400 sm:hidden">?</span>
+              </Button>
               <Button variant="ghost" className="px-2" disabled={!canUndo || mode === "drawing"} onClick={() => doHistory("undo")} aria-label="Undo" title="Undo (Ctrl+Z)">
                 <UndoIcon />
               </Button>
@@ -393,8 +409,14 @@ export default function ClientShell() {
               <UndoIcon flip />
             </Button>
           </div>
+          <Button variant="ghost" onClick={startTour} title="Guided tour" aria-label="Guided tour">
+            <span className="max-sm:hidden">Tour</span>
+            <span className="flex h-5 w-5 items-center justify-center rounded-full text-[12px] font-bold ring-1 ring-neutral-400 sm:hidden">?</span>
+          </Button>
+          {/* Phone: no room for the sound toggle on the actions row. */}
           <Button
             variant="ghost"
+            className="max-sm:hidden"
             aria-label={muted ? "Turn sounds on" : "Turn sounds off"}
             title={muted ? "Sounds off" : "Sounds on"}
             onClick={() => setMuted(!muted)}
@@ -413,6 +435,7 @@ export default function ClientShell() {
         {/* Phone (Expert): the map ends at the bottom sheet (45 %), or at its tab bar when the sheet is hidden. */}
         <div className={`absolute inset-y-0 left-0 right-0 ${uiMode === "expert" ? `sm:right-[340px] ${phoneSheet === "closed" ? "max-sm:bottom-10" : "max-sm:bottom-[45%]"}` : "ui-simple"}`}>
           <MapView onReady={onReady} />
+          <TourMapLayer api={api} />
         </div>
 
         {uiMode === "simple" ? (
@@ -470,6 +493,7 @@ export default function ClientShell() {
         )}
         <Toast />
       </main>
+      <Tour api={api} />
     </div>
   );
 }

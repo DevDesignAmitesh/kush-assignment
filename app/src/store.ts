@@ -119,6 +119,9 @@ interface AppState {
   /** Simple step card: the step being shown (1 plot, 2 road, 3 type). */
   simpleStep: 1 | 2 | 3;
   setSimpleStep: (n: 1 | 2 | 3) => void;
+  /** Guided tour (ui/Tour): the step shown, or null when no tour runs. Only started on request. */
+  tourStep: number | null;
+  setTourStep: (n: number | null) => void;
   /** "Where could I build taller?" map layer (off by default). */
   tallerLayer: boolean;
   setTallerLayer: (on: boolean) => void;
@@ -215,6 +218,8 @@ export const useStore = create<AppState>((set, get) => ({
   setUnits: (units) => set({ units }),
   simpleStep: 1,
   setSimpleStep: (simpleStep) => set({ simpleStep }),
+  tourStep: null,
+  setTourStep: (tourStep) => set({ tourStep }),
   tallerLayer: false,
   setTallerLayer: (tallerLayer) => set({ tallerLayer }),
   dragging: false,

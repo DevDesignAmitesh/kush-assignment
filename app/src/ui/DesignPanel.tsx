@@ -73,6 +73,7 @@ export function DesignPanel({ phoneHidden = false }: { phoneHidden?: boolean }) 
             sound.click();
             setCompare(true);
           }}
+          data-tour="compare"
           className="mt-3 w-full rounded-lg py-1.5 text-[12px] font-semibold text-neutral-700 ring-1 ring-neutral-300 transition-[transform,background-color] hover:bg-neutral-50 active:scale-95"
         >
           Compare A / B / C
@@ -84,6 +85,7 @@ export function DesignPanel({ phoneHidden = false }: { phoneHidden?: boolean }) 
   return (
     <aside className={`pointer-events-auto absolute bottom-0 right-0 top-0 w-[340px] overflow-y-auto border-l border-neutral-200 bg-white px-4 py-3 text-sm max-sm:top-auto max-sm:h-[calc(45%-2.5rem)] max-sm:w-full max-sm:border-l-0 ${phoneHidden ? "max-sm:hidden" : ""}`}
       aria-label="Designs"
+      data-tour="designs"
     >
       {/* On a phone the sheet's tab bar already says "Designs". */}
       <div className="mb-2 text-[13px] font-semibold text-neutral-800 max-sm:hidden">Designs</div>

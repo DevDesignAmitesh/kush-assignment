@@ -99,6 +99,12 @@ export interface MapApi {
   setMapStyle(m: MapStyleMode): void;
   /** Fit the camera to the current plot (after a share-link restore). */
   fitPlot(): void;
+  /** Fly the camera to frame a ring (guided tour); resolves when the camera stops. */
+  flyToRing(ring: LngLat[]): Promise<void>;
+  /** Screen point (px, relative to the map container) of a lon/lat. */
+  project(p: LngLat): { x: number; y: number };
+  /** Call `cb` on every camera move; returns an unsubscribe function. */
+  onCamera(cb: () => void): () => void;
 }
 
 const fmtArea = (ring: LngLat[]) =>
@@ -749,6 +755,22 @@ export default function MapView({ onReady }: { onReady?: (api: MapApi) => void }
         fitPlot: () => {
           const p = st().plot;
           if (p) fitTo(p);
+        },
+        flyToRing: (ring) =>
+          new Promise<void>((resolve) => {
+            map.once("moveend", () => resolve());
+            setTimeout(resolve, 4000); // fitTo returns early if the camera can't be computed
+            fitTo(ring, 0, DEVICE.defaultPitch, VIEW_MS * 2);
+          }),
+        project: (p) => {
+          const q = map.project(p as [number, number]);
+          return { x: q.x, y: q.y };
+        },
+        onCamera: (cb) => {
+          map.on("move", cb);
+          return () => {
+            map.off("move", cb);
+          };
         },
         clear: () => {
           draw?.clear();

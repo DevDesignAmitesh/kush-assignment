@@ -15,6 +15,7 @@ import { ringAreaM2 } from "@/engine/geo";
 import { groupRoadEdges, patchGroup } from "./roadGroups";
 import { scheduleCommit } from "./commitLater";
 import { sound } from "./sound";
+import { startTour } from "./Tour";
 
 const ACCENT = "#e4572e";
 
@@ -101,7 +102,7 @@ export function StepCard({ api }: { api: MapApi | null }) {
   const roadDone = groups.length > 0 && groups.every((g) => g.confirmed);
 
   return (
-    <section className="panel-in pointer-events-auto absolute left-3 top-3 w-[290px] max-w-[calc(100%-1.5rem)] rounded-xl bg-white/95 px-3 py-2.5 shadow-md ring-1 ring-black/5" aria-label="Steps">
+    <section className="panel-in pointer-events-auto absolute left-3 top-3 w-[290px] max-w-[calc(100%-1.5rem)] rounded-xl bg-white/95 px-3 py-2.5 shadow-md ring-1 ring-black/5" aria-label="Steps" data-tour="stepcard">
       {step > 1 && plot && <DoneLine onClick={() => setStep(1)} text={formatArea(ringAreaM2(plot), units)} />}
       {step > 2 && roadDone && <DoneLine onClick={() => setStep(2)} text={groups.map((g) => `${g.name ?? "Road"} · ${g.widthM} m`).join(", ")} />}
 
@@ -115,7 +116,7 @@ export function StepCard({ api }: { api: MapApi | null }) {
               </button>
             ) : (
               <>
-                <button disabled={!api} className="rounded-lg px-3 py-1.5 text-[12px] font-semibold text-white disabled:opacity-40" style={{ background: ACCENT }} onClick={() => api?.startDrawing()}>
+                <button data-tour="draw" disabled={!api} className="rounded-lg px-3 py-1.5 text-[12px] font-semibold text-white disabled:opacity-40" style={{ background: ACCENT }} onClick={() => api?.startDrawing()}>
                   Draw
                 </button>
                 <button disabled={!api} className="rounded-lg px-3 py-1.5 text-[12px] font-semibold ring-1 ring-neutral-300 disabled:opacity-40" onClick={() => api?.loadDemo()}>
@@ -124,6 +125,11 @@ export function StepCard({ api }: { api: MapApi | null }) {
               </>
             )}
           </div>
+          {mode !== "drawing" && (
+            <button className="mt-2 text-[12px] font-medium text-neutral-500 underline decoration-dotted underline-offset-2 hover:text-neutral-900" onClick={startTour}>
+              New here? Take the guided tour
+            </button>
+          )}
         </div>
       )}
 
@@ -208,6 +214,7 @@ export function ResultCard({ verdict, whatIfs, density, rulesData }: { verdict: 
     <section
       className="panel-in pointer-events-auto absolute z-10 rounded-xl bg-white/95 px-3.5 py-3 shadow-md ring-1 ring-black/5 max-sm:inset-x-0 max-sm:bottom-0 max-sm:rounded-b-none max-sm:pb-4 sm:right-3 sm:top-3 sm:w-[300px]"
       aria-label="Result"
+      data-tour="result"
       aria-busy={updating}
     >
       {updating && <div className="shimmer pointer-events-none absolute inset-x-0 top-0 h-0.5 overflow-hidden rounded-t-xl" aria-hidden />}

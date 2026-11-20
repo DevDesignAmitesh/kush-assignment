@@ -168,6 +168,19 @@ describe("road-edge suggestion", () => {
     const r = checkSite(inputs({ roads: [road("minor", [[-60, -33], [60, -33]]), road("tertiary", [[28, -60], [28, 60]])] }));
     expect(r.suggestedRoadEdges.map((e) => e.edge).sort()).toEqual([0, 1]);
   });
+  it("names the road the edge faces, not a cross street touching the segment at a junction", () => {
+    // The main-road segment ends at a junction (x = 40) where a cross street's name line meets it.
+    const r = checkSite(
+      inputs({
+        roads: [road("primary", [[-60, -33], [40, -33]])],
+        roadNames: [
+          { name: "Soi Cross", cls: "minor", coords: ll([[40, -33], [40, -100]]) },
+          { name: "Main Road", cls: "primary", coords: ll([[-60, -33], [40, -33]]) },
+        ],
+      }),
+    );
+    expect(r.suggestedRoadEdges.map((e) => [e.edge, e.name])).toEqual([[0, "Main Road"]]);
+  });
   it("a road at 45° is not suggested", () => {
     const r = checkSite(inputs({ roads: [road("minor", [[-60, -90], [60, 30]])] }));
     expect(r.suggestedRoadEdges).toEqual([]);

@@ -52,6 +52,13 @@ export default function Landing() {
                 Draw my own plot
               </Link>
             </div>
+            <Link
+              href="/tool?tour=1"
+              className="reveal mt-4 text-[13px] font-medium text-white/80 underline decoration-white/40 underline-offset-4 hover:text-white"
+              style={{ animationDelay: "220ms" }}
+            >
+              New here? Take the guided tour
+            </Link>
           </section>
 
           <LandingList />
