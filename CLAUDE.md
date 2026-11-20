@@ -34,7 +34,7 @@ bun run build && bun run start   # production build; add ?perf=1 to log engine t
 | `EXPECTATIONS.md` | Definition of done per spec section; golden numbers (§D); break-it table (§I) |
 | `DEVIATIONS.md` | Every change from the plan, with the reason. **Check here before calling something a bug:** it may be a decision |
 | `research/DESIGN_DIRECTION.md` | UI direction: "proof on the model", Simple vs Expert modes, screen budget, performance budgets |
-| `research/AI_MISSES_LOG.md` | 47 mistakes the AI made and how each was caught (material for the submission doc) |
+| `research/AI_MISSES_LOG.md` | 47 mistakes the AI made and how each was caught (material for the submission doc). Local only (gitignored): keep logging, don't commit it |
 | `PROGRESS.md` | The last status report from the build session (14:15 IST, 20 Nov), plus the feedback round on top |
 | `ASSIGNMENT_BRIEF.md`, `ASSIGNMENT_DESCRIPTION.md` | The brief and role text. Local only (gitignored): don't publish them |
 

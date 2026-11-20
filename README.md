@@ -47,7 +47,6 @@ bun run build && bun run start
 | `app/src/rules/bangkok-y10.json` | Every rule number used by the engine, with sources |
 | `app/src/ui/` | Simple and Expert panels, Compare, the guided tour (`Tour.tsx`) |
 | `research/RULES.md` | The law for ย.10 in plain English, with clause and page citations |
-| `research/AI_MISSES_LOG.md` | Mistakes the AI made during the build and how they were caught |
 | `BUILD_PLAN.md`, `EXPECTATIONS.md`, `DEVIATIONS.md` | The spec, the definition of done, and every change from the spec |
 
 ## Next (not in v1)

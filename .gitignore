@@ -31,6 +31,7 @@ app/test-artifacts/
 # private: assignment text from General Machines and raw chat exports
 ASSIGNMENT_BRIEF.md
 ASSIGNMENT_DESCRIPTION.md
+research/AI_MISSES_LOG.md
 2026-*.txt
 *.jsonl
 transcripts/
