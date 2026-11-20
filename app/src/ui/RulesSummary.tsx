@@ -54,7 +54,7 @@ export function RulesSummary() {
         )}
       </dl>
       {c.status === "no-road" && (
-        <Banner tone="amber" title="Which edge faces the road?">
+        <Banner tone="road" title="Which edge faces the road?">
           Click the plot edge on the road to see the setbacks and allowed space.
         </Banner>
       )}
@@ -78,10 +78,11 @@ function Stat({ label, value, sub }: { label: string; value: string; sub?: strin
   );
 }
 
-function Banner({ tone, title, children }: { tone: "red" | "amber"; title: string; children?: React.ReactNode }) {
-  const cls = tone === "red" ? "bg-red-50 text-red-800 ring-red-200" : "bg-amber-50 text-amber-800 ring-amber-200";
+// Amber is kept for what the user clicked (proof on the model); a prompt uses the road-edge blue.
+function Banner({ tone, title, children }: { tone: "red" | "road"; title: string; children?: React.ReactNode }) {
+  const cls = tone === "red" ? "bg-red-50 text-red-800 ring-red-200" : "bg-blue-50 text-blue-900 ring-blue-200";
   return (
-    <div className={`panel-in mt-2.5 rounded-lg px-3 py-2 text-xs ring-1 ${cls}`} role="alert">
+    <div className={`panel-in mt-2.5 rounded-lg px-3 py-2 text-xs ring-1 ${cls}`} role={tone === "red" ? "alert" : "status"}>
       <div className="font-semibold">{title}</div>
       {children && <div className="mt-0.5">{children}</div>}
     </div>

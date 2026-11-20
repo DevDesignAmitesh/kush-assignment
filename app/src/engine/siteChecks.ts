@@ -484,7 +484,7 @@ export function checkSite(inp: SiteInputs): SiteResult {
           id: "access",
           level: "ok",
           title: nm ? `Faces ${nm}` : "Has a road next to it",
-          detail: `Road centreline ${access.d.toFixed(0)} m from the plot edge. You'll confirm the road edge and width in the next step.`,
+          detail: `Road centreline ${access.d.toFixed(0)} m from the plot edge. Confirm the road edge and width under Road.`,
         });
       }
     } else if (!crossing.length) {

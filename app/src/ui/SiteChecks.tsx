@@ -4,7 +4,7 @@ import type { IssueLevel, SiteResult } from "@/engine/siteChecks";
 
 const ICON: Record<IssueLevel, { glyph: string; cls: string }> = {
   error: { glyph: "✕", cls: "bg-red-600 text-white" },
-  warning: { glyph: "!", cls: "bg-amber-400 text-amber-950" },
+  warning: { glyph: "!", cls: "bg-neutral-800 text-white" },
   info: { glyph: "i", cls: "bg-sky-100 text-sky-700" },
   ok: { glyph: "✓", cls: "bg-emerald-100 text-emerald-700" },
 };
@@ -16,7 +16,7 @@ export function SiteChecks({ site }: { site: SiteResult }) {
     errors > 0
       ? { text: `${errors} problem${errors > 1 ? "s" : ""} to fix`, cls: "text-red-600" }
       : warnings > 0
-        ? { text: `${warnings} thing${warnings > 1 ? "s" : ""} to check`, cls: "text-amber-600" }
+        ? { text: `${warnings} thing${warnings > 1 ? "s" : ""} to check`, cls: "text-neutral-800" }
         : { text: "Looks good", cls: "text-emerald-600" };
 
   return (

@@ -3,6 +3,7 @@ import type { Map as MlMap, ExpressionSpecification, FilterSpecification, GeoJSO
 import type { SiteBuilding, SiteResult } from "@/engine/siteChecks";
 import type { LngLat } from "@/engine/geo";
 import { DETAIL_ZOOM, VECTOR_SOURCE } from "@/site/tileContext";
+import polygonClipping, { type MultiPolygon as PcMulti } from "polygon-clipping";
 
 export const COLORS = {
   buildingLow: "#e7e5e4",
@@ -76,6 +77,7 @@ export const USE_COLORS: Record<string, string> = {
 };
 export const AMBER = "#f59e0b";
 const PROOF = "proof-src";
+const SETBACKS = "setbacks-src";
 const EDGE_LABELS = "plot-edge-labels-src";
 
 function firstSymbolLayer(map: MlMap): string | undefined {
@@ -384,6 +386,11 @@ export function addContextLayers(map: MlMap, zoneColour: string, opts: { hatch: 
     filter: ["==", ["get", "k"], "ext"],
     paint: { "fill-extrusion-color": AMBER, "fill-extrusion-base": ["get", "base"], "fill-extrusion-height": ["get", "top"], "fill-extrusion-opacity": 0.88 },
   });
+  // Setbacks (Expert toggle, off by default): the strip between the plot edge and the ground-floor allowed
+  // space, plus its inner boundary dashed. On the ground, under the 3D layers.
+  map.addSource(SETBACKS, { type: "geojson", data: empty() });
+  map.addLayer({ id: "setbacks-band", type: "fill", source: SETBACKS, layout: { visibility: "none" }, filter: ["==", ["get", "k"], "band"], paint: { "fill-color": "#0e7490", "fill-opacity": 0.22 } }, "ctx-buildings");
+  map.addLayer({ id: "setbacks-line", type: "line", source: SETBACKS, layout: { visibility: "none" }, filter: ["==", ["get", "k"], "edge"], paint: { "line-color": "#0e7490", "line-width": 2, "line-dasharray": [2, 1.5] } }, "ctx-buildings");
   // Plot fills belong on the ground, under every 3D layer (otherwise they tint the design and envelope).
   for (const id of ["plot-free", "plot-built", "plot-built-hatch"]) map.moveLayer(id, "ctx-buildings");
 
@@ -639,4 +646,38 @@ export function setTallerLayer(map: MlMap, on: boolean, stations: { at: LngLat; 
       return { type: "Feature", properties: {}, geometry: { type: "Polygon", coordinates: [ring] } };
     });
   (map.getSource(RINGS) as GeoJSONSource | undefined)?.setData({ type: "FeatureCollection", features });
+}
+
+/** Setback strip = plot − ground slice of the allowed space (null / empty clears). */
+export function setSetbackData(map: MlMap, plot: LngLat[] | null, ground: LngLat[][][]) {
+  const fs: GeoJSON.Feature[] = [];
+  if (plot && ground.length) {
+    let band: PcMulti = [];
+    try {
+      band = polygonClipping.difference([[plot as [number, number][]]], ...(ground as unknown as PcMulti[]).map((p) => [p] as unknown as PcMulti));
+    } catch {
+      band = [];
+    }
+    for (const poly of band) fs.push({ type: "Feature", properties: { k: "band" }, geometry: { type: "Polygon", coordinates: poly } });
+    for (const poly of ground) for (const ring of poly) fs.push({ type: "Feature", properties: { k: "edge" }, geometry: { type: "LineString", coordinates: ring } });
+  }
+  (map.getSource(SETBACKS) as GeoJSONSource | undefined)?.setData({ type: "FeatureCollection", features: fs });
+}
+
+export interface LayerToggles {
+  envelope: boolean;
+  design: boolean;
+  setbacks: boolean;
+}
+
+/** Expert H.2 toggles: show / hide whole layers (data stays loaded). */
+export function setLayerToggles(map: MlMap, t: LayerToggles) {
+  const vis = (on: boolean) => (on ? "visible" : "none");
+  const ids: [string, boolean][] = [
+    ["envelope", t.envelope],
+    ["design-floors", t.design],
+    ["setbacks-band", t.setbacks],
+    ["setbacks-line", t.setbacks],
+  ];
+  for (const [id, on] of ids) if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", vis(on));
 }

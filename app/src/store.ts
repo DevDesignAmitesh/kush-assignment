@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import type { AssumptionOverrides } from "@/engine/assumptions";
 import type { LngLat } from "@/engine/geo";
 import type { DataStatus, SiteBuilding, SiteResult, SiteRoad, SiteRoadName, SiteZone, StationData } from "@/engine/siteChecks";
 import type { ComputeResult, DesignResult } from "@/engine";
@@ -23,10 +24,19 @@ export interface Snapshot {
   buildingType: BuildingType;
   /** FAR bonus per option id (rule JSON farBonus.options), % requested. */
   bonuses: Record<string, number>;
+  /** Edited design assumptions (absent key = default for the building type). */
+  assumptions: AssumptionOverrides;
 }
+/** Expert map layer toggles (H.2). Simple always uses SIMPLE_LAYERS. */
+export interface MapLayers {
+  envelope: boolean;
+  design: boolean;
+  setbacks: boolean;
+}
+export const SIMPLE_LAYERS: MapLayers = { envelope: true, design: true, setbacks: false };
 export const HISTORY_MAX = 50;
 
-const snap = (s: Snapshot): Snapshot => ({ plot: s.plot, roadEdges: s.roadEdges, roadEdgesSource: s.roadEdgesSource, buildingType: s.buildingType, bonuses: s.bonuses });
+const snap = (s: Snapshot): Snapshot => ({ plot: s.plot, roadEdges: s.roadEdges, roadEdgesSource: s.roadEdgesSource, buildingType: s.buildingType, bonuses: s.bonuses, assumptions: s.assumptions });
 const same = (a: Snapshot, b: Snapshot) => JSON.stringify(a) === JSON.stringify(b);
 export type ToastKind = "info" | "success" | "error";
 
@@ -81,6 +91,10 @@ interface AppState {
   setBuildingType: (t: BuildingType) => void;
   bonuses: Record<string, number>;
   setBonuses: (b: Record<string, number>) => void;
+  assumptions: AssumptionOverrides;
+  layers: MapLayers;
+  setLayer: (k: keyof MapLayers, on: boolean) => void;
+  setAssumptions: (a: AssumptionOverrides) => void;
   /** Load a whole scenario (share URL): one undo entry, the map redraws the plot. */
   restoreScenario: (s: Snapshot) => void;
   compute: ComputeResult | null;
@@ -177,6 +191,10 @@ export const useStore = create<AppState>((set, get) => ({
   setBuildingType: (buildingType) => set({ buildingType }),
   bonuses: {},
   setBonuses: (bonuses) => set({ bonuses }),
+  assumptions: {},
+  layers: SIMPLE_LAYERS,
+  setLayer: (k, on) => set((s) => ({ layers: { ...s.layers, [k]: on } })),
+  setAssumptions: (assumptions) => set({ assumptions }),
   restoreScenario: (sc) => {
     set((s) => ({ ...sc, plotError: null, restoreSeq: s.restoreSeq + 1 }));
     get().commit();
@@ -208,7 +226,7 @@ export const useStore = create<AppState>((set, get) => ({
   plotAreas: null,
   setPlotAreas: (plotAreas) => set({ plotAreas }),
 
-  history: { entries: [{ plot: null, roadEdges: {}, roadEdgesSource: "auto", buildingType: "condo", bonuses: {} }], index: 0 },
+  history: { entries: [{ plot: null, roadEdges: {}, roadEdgesSource: "auto", buildingType: "condo", bonuses: {}, assumptions: {} }], index: 0 },
   commit: () =>
     set((s) => {
       const cur = snap(s);

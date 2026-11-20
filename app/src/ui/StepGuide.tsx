@@ -2,12 +2,16 @@
 
 import { useStore } from "@/store";
 
-/** Bottom-of-map coach: always says what to do next. */
+/** Bottom-of-map coach: says what to do next, and gets out of the way once the inputs are done. */
 export function StepGuide({ ready }: { ready: boolean }) {
   const mode = useStore((s) => s.mode);
   const plot = useStore((s) => s.plot);
   const points = useStore((s) => s.drawPoints);
   const errors = useStore((s) => s.site?.issues.filter((i) => i.level === "error").length ?? 0);
+  const roadEdges = useStore((s) => s.roadEdges);
+  const roads = Object.values(roadEdges);
+  const noRoad = roads.length === 0;
+  const unconfirmed = roads.some((r) => !r.confirmed);
 
   let title: string;
   let body: React.ReactNode;
@@ -35,16 +39,22 @@ export function StepGuide({ ready }: { ready: boolean }) {
         See <b>Site checks</b> on the left. Drag the corners to fix it, or press <b>Redraw plot</b>.
       </>
     );
-  } else if (plot) {
-    title = "Plot ready. Adjust it if needed";
+  } else if (plot && noRoad) {
+    title = "Step 2 · Mark the road side";
     body = (
       <>
-        Drag a <b>white corner</b> to move it · drag an <b>orange dot</b> to add a corner · drag inside to move the plot.
-        <span className="mt-1 block text-xs opacity-70">
-          Next build: choose the road and building type, then see the rules, allowed space and designs.
-        </span>
+        Click the plot edge that faces the road. Drag a <b>white corner</b> to adjust the plot, an <b>orange dot</b> to add a corner.
       </>
     );
+  } else if (plot && unconfirmed) {
+    title = "Check the road width";
+    body = (
+      <>
+        The width comes from the map and is an estimate. Set it in <b>Road</b> on the left, then press <b>Looks right</b>.
+      </>
+    );
+  } else if (plot) {
+    return null;
   } else {
     title = "Step 1 · Mark your plot";
     body = (

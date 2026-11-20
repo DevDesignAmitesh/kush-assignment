@@ -34,6 +34,8 @@ import {
   type EdgeLabel,
   setProofData,
   setEnvelopeData,
+  setSetbackData,
+  setLayerToggles,
   setPlotEdges,
   setMapStyleMode,
   setPlotSplit,
@@ -41,6 +43,8 @@ import {
   setSiteFlags,
   setZoneData,
 } from "./layers";
+import type { LayerToggles } from "./layers";
+import { SIMPLE_LAYERS } from "@/store";
 
 // The bundler breaks MapLibre's default (import.meta.url-relative) worker path; serve the
 // worker from public/ instead (copied by scripts/copy-maplibre-worker.mjs on dev/build).
@@ -182,6 +186,13 @@ export default function MapView({ onReady }: { onReady?: (api: MapApi) => void }
     };
 
     // ---------- camera ----------
+    // Room left for the panels over the map. Fixed desktop paddings (380 px left) are wider than a phone, so on
+    // narrow maps the plot is framed between the top card and the bottom sheet instead.
+    const pad = (desk: { top: number; bottom: number; left: number; right: number }) => {
+      const { clientWidth: w, clientHeight: h } = map.getContainer();
+      if (w >= 640) return desk;
+      return { top: Math.round(h * 0.22), bottom: Math.round(h * 0.36), left: 24, right: 24 };
+    };
     const fitTo = (ring: LngLat[], bearing = map.getBearing(), pitch = map.getPitch(), duration = VIEW_MS) => {
       const [w, s, e, n] = bboxOf(ring);
       const cam = map.cameraForBounds(
@@ -189,7 +200,7 @@ export default function MapView({ onReady }: { onReady?: (api: MapApi) => void }
           [w, s],
           [e, n],
         ],
-        { padding: { top: 120, bottom: 160, left: 380, right: 200 }, bearing },
+        { padding: pad({ top: 120, bottom: 160, left: 380, right: 200 }), bearing },
       );
       if (!cam) return;
       // A pitched camera sees the plot foreshortened and the envelope rising above it: zoom out so both fit.
@@ -343,7 +354,7 @@ export default function MapView({ onReady }: { onReady?: (api: MapApi) => void }
           [Math.min(...lons), Math.min(...lats)],
           [Math.max(...lons), Math.max(...lats)],
         ],
-        { padding: { top: 140, bottom: 180, left: 400, right: 220 }, bearing: map.getBearing() },
+        { padding: pad({ top: 140, bottom: 180, left: 400, right: 220 }), bearing: map.getBearing() },
       );
       if (!cam) return;
       const z = Math.min(map.getZoom() + 0.6, Math.max(MIN_FIT_ZOOM, (cam.zoom ?? map.getZoom()) - 0.4));
@@ -392,6 +403,8 @@ export default function MapView({ onReady }: { onReady?: (api: MapApi) => void }
     unsubs.push(() => window.removeEventListener("pointerup", onPointerUp, true));
 
     map.on("load", () => {
+      // MapLibre opens the compact attribution until the first drag; on a phone it would cover the step card.
+      if (map.getContainer().clientWidth < 640) map.getContainer().querySelector(".maplibregl-ctrl-attrib")?.classList.remove("maplibregl-compact-show");
       if (cancelled) return;
       // Hide the basemap's own buildings; ctx-buildings re-draws them in 3D with our filters.
       for (const layer of map.getStyle().layers ?? []) {
@@ -419,6 +432,7 @@ export default function MapView({ onReady }: { onReady?: (api: MapApi) => void }
       let lastLabelKey = "";
       let lastUiMode: string | null = null;
       let lastTaller = false;
+      let lastToggles: LayerToggles | null = null;
       let lastStations: unknown = null;
       let lastTallerPlot: unknown = null;
       unsubs.push(
@@ -438,6 +452,12 @@ export default function MapView({ onReady }: { onReady?: (api: MapApi) => void }
           }
           // Edge labels follow plot, road edges, envelope and the selected design's class.
           const labelKey = `${s.plot?.length}|${JSON.stringify(s.roadEdges)}|${s.compute?.ms}|${s.selectedDesign}|${s.designs.length}|${s.uiMode}|${s.simpleStep}`;
+          // H.2 layer toggles are Expert-only; Simple always shows envelope + design, no setbacks.
+          const toggles = s.uiMode === "expert" ? s.layers : SIMPLE_LAYERS;
+          if (toggles !== lastToggles) {
+            lastToggles = toggles;
+            setLayerToggles(map, toggles);
+          }
           if (s.uiMode !== lastUiMode) {
             lastUiMode = s.uiMode;
             setSiteFlags(map, s.uiMode === "simple" ? null : s.site, s.context.buildings);
@@ -476,6 +496,8 @@ export default function MapView({ onReady }: { onReady?: (api: MapApi) => void }
             // Show the high-rise envelope when the gate allows it, otherwise the low-rise one.
             const cls = c && c.status === "ok" ? (c.envelopes.highRise?.slices.length ? "highRise" : "lowRise") : null;
             setEnvelopeData(map, c?.features ?? [], cls);
+            const ground = cls ? (c?.features ?? []).filter((f) => f.cls === cls && f.index === 0).flatMap((f) => f.polygons) : [];
+            setSetbackData(map, cls ? s.plot : null, ground);
           }
           if (s.roadEdges !== lastEdges || s.plot !== lastEdgePlot) {
             lastEdges = s.roadEdges;

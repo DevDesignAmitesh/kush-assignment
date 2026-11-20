@@ -31,3 +31,4 @@ bun run data:stations       # rebuild public/data/bkk-rail-stations.geojson
 - **More than one plot.** Combine neighbouring parcels into one site, or compare separate plots side by side.
 - Overpass as a second site-context source (tiles only today).
 - Zones other than ย.10.
+- **Rule inspector.** A panel that opens any rule with its full clause text, the numbers it set on this plot and every check that uses it. Cut from v1; today each check row links its clause, and `research/RULES.md` has the text.

@@ -295,7 +295,11 @@ function AreaTable({ d, maxGfa }: { d: DesignResult; maxGfa: number }) {
   const sum = d.design.floors.reduce((s, f) => s + f.areaM2, 0);
   const card = d.design.gfaM2;
   const far = d.checks.find((c) => c.id === "far")?.measured;
-  const ok = Math.abs(sum - card) <= 0.01 && (far === undefined || Math.abs(far - card) <= 0.01);
+  // "Parking counted in floor area: no" (assumption): FAR counts the non-parking floors only.
+  const parkingInFar = useStore((s) => s.assumptions.parkingInFar !== false);
+  const parking = d.design.floors.filter((f) => f.use === "parking").reduce((s, f) => s + f.areaM2, 0);
+  const counted = parkingInFar ? sum : sum - parking;
+  const ok = Math.abs(sum - card) <= 0.01 && (far === undefined || Math.abs(far - counted) <= 0.01);
   const open2 = d.checks.find((c) => c.id === "open-land");
   return (
     <div className="mt-3">
@@ -320,6 +324,8 @@ function AreaTable({ d, maxGfa }: { d: DesignResult; maxGfa: number }) {
             ))}
             <tr className="border-t border-neutral-300 font-semibold"><td colSpan={2}>Σ rows</td><td className="text-right">{n2.format(sum)} m²</td></tr>
             <tr><td colSpan={2}>Design card</td><td className="text-right">{n2.format(card)} m²</td></tr>
+            {!parkingInFar && <tr className="text-neutral-500"><td colSpan={2}>Parking, not counted for FAR</td><td className="text-right">− {n2.format(parking)} m²</td></tr>}
+            {!parkingInFar && <tr><td colSpan={2}>Counted for FAR</td><td className="text-right">{n2.format(counted)} m²</td></tr>}
             {far !== undefined && <tr><td colSpan={2}>Measured by the FAR check</td><td className="text-right">{n2.format(far)} m²</td></tr>}
             <tr className="border-t border-neutral-200 text-neutral-500"><td colSpan={2}>Coverage (ground floor)</td><td className="text-right">{n2.format(d.design.footprintM2)} m²</td></tr>
             <tr className="text-neutral-500"><td colSpan={2}>Open space</td><td className="text-right">{n2.format(d.design.openSpaceM2)} m²</td></tr>

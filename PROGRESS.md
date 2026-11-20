@@ -1,28 +1,16 @@
 # PROGRESS.md: status report for the planning session
 
-Generated 2026-11-20 12:15 IST. Round: **planning review items 1, 2, 4 + item 3 as amended, M4 part 2, M6 break-it pass**. Evidence comes from fresh `test` / `lint` / `build` runs at **12:08** and headless Chrome on `http://localhost:3000` (dev server, 11:30-12:05). Overwritten each time. Not deployed, not pushed.
+Generated 2026-11-20 14:15 IST. Round: **planning review 12:15, decisions 1-5** (H.3 cut, H.2 toggles, editable assumptions, M5 polish, M7 screenshots). Evidence comes from fresh `test` / `lint` / `build` runs at **14:08**, a **clean-copy build at 14:12** (only files git would commit: `git ls-files -co --exclude-standard`, fresh `bun install --frozen-lockfile`), and headless Chrome on `http://localhost:3000` (dev server 13:40-13:55, production build 13:58-14:10). Overwritten each time. Not deployed, not pushed. The planning session's repo prep (root `.gitignore`, `README.md`, `research/sources/README.md`, CLAUDE.md hosting rule) is kept; README files were only added to.
 
-**Clock:** about 26.5 h left at 12:15 IST (deadline 2026-11-21 09:19 UTC).
+**Clock:** 24 h 35 m left at 14:14 IST (deadline 2026-11-21 09:19 UTC).
 
 **Summary:**
-- **Addendum B closed on real hardware** (Amitesh, real Chrome, `?perf=1`, production build):
-  - envelope 0-3 ms per drag job;
-  - full job ≈ 27-31 ms (compute 2-7 ms + designs 19-24 ms).
-  - Both targets met. This is the H.6 evidence. AI miss #30 confirmed: the headless timings were SwiftShader, not the engine.
-- **Simple W = 8 screen:** 40 words; demo screen 38. The taller layer draws 4 rings (not 195).
-- **"Updating…" shimmer:** on the result card while a newer result is on its way.
-- **Edge labels:** one per run of road edges.
-- **M4 part 2:**
-  - KPI strip;
-  - Expert numbered steps;
-  - type + FAR-bonus inputs;
-  - footer line;
-  - per-floor area table (three totals agree to 0.01 m²);
-  - full scenario in the URL hash;
-  - amber only for clicked things.
-- **Break-it pass:** **12 / 12 rows pass.**
-  - It first caught 2 real failures (silent self-intersection, Expert at 375 px), a wrong Simple verdict with no road edge, and a false PASS in my own 375 px check.
-  - All fixed and re-run (AI misses #34-#37).
+- **H.3 rule inspector:** cut. Listed under "Next" in `README.md` and `app/README.md`; DEVIATIONS row.
+- **H.2 layer toggles:** Expert-only row Envelope / Design / Setbacks under the map-style switch. Setbacks is a new ground layer (the strip between the plot edge and the ground floor of the allowed space, dashed inner edge). The legend follows the toggles. Simple ignores them.
+- **Editable assumptions:** 7 values plus "parking counted in floor area". Ranges enforced, kept in undo and in the share link, reset button, 6 new tests. Every edit reaches both the design generators and the independent checker.
+- **M5 polish:** amber left the panels; the step guide follows the steps and then hides; there is no empty panel while loading; on phones the plot is now in view (it wasn't) and the map controls no longer sit under the result sheet.
+- **M7:** 6 curated screenshots in `docs/screenshots/` (committed, 1.0 MB JPEG total, taken from the production build), referenced in the root README.
+- **Regression:** break-it re-run is **12 / 12 PASS**, no page errors. **115 tests** pass.
 
 ---
 
@@ -32,116 +20,112 @@ Generated 2026-11-20 12:15 IST. Round: **planning review items 1, 2, 4 + item 3 
 |---|---|
 | M0-M1, M3 | done |
 | M2 | partial (Overpass deferred per Q1; stations done) |
-| M4 | **done for the planning list**. Not built: rule inspector (H.3), layer toggles Envelope / Design / Setbacks / Rules (H.2), editable assumptions (C) |
-| M5 | partly done along the way (legend, labels, camera presets, mobile sheet, states); no dedicated pass yet |
-| M6 | **break-it rows 12 / 12 pass**; < 16 ms met on real hardware; production build works locally |
-| M7 | not started (README has run steps; screenshots + Amitesh's doc pending) |
+| M4 | **done.** H.3 rule inspector cut (DEVIATIONS); H.2 built as Envelope / Design / Setbacks (no Rules layer); assumptions editable |
+| M5 | **done** (pass below) |
+| M6 | break-it 12 / 12 (re-run this round); < 16 ms met on real hardware; clean-copy build passes |
+| M7 | screenshots + README done; Amitesh writes the doc; "go public" waits for Amitesh |
 
 ```
-M4 status: done (planning list); M6 break-it: 12/12
-Verified: build ✓ lint ✓ tests ✓ (109 passing at 12:08: engine 35, siteChecks 34, designs 14, simple 12, history 5, roadGroups 5, scenario 2, geo 2) · browser ✓ (app/test-artifacts/R2-*.png, B-*.png) · prod build ✓
-Expectations met: C (all rows; assumptions visible but read-only → Deviations), H.1, H.4, H.5, H.6 (real-Chrome numbers below), H.7 (375 px), I (all 12 rows), plus planning review items 1-4
-Golden numbers: part D unchanged; area statement Σ rows = card = FAR-check GFA within 0.01 m² (new test)
-Deviations: DEVIATIONS.md rows "2026-11-20 (M4 pt 2)" (8 rows)
-AI misses logged: #34-#37
-Next: decide on H.2 toggles / H.3 rule inspector / editable assumptions; M5 polish pass; M7 README screenshots
+M4/M5 status: done; M7: screenshots in README
+Verified: build ✓ lint ✓ tests ✓ (115 passing at 14:08: engine 35, siteChecks 34, designs 14, simple 12, assumptions 5, history 5, roadGroups 5, scenario 3, geo 2) · clean-copy build ✓ (14:12) · browser ✓ (dev + production; app/test-artifacts/M5-*.png, S-*.png; docs/screenshots/*.jpg)
+Expectations met: C (now incl. editable assumptions), H.1, H.2 (3 layers), H.4, H.5, H.6, H.7, I (12/12 re-run)
+Golden numbers: part D unchanged (default assumptions give identical results: test)
+Deviations: DEVIATIONS.md rows "(M5)" ×4 and "(M7)" ×1
+AI misses logged: #38-#41
+Next: Amitesh's doc; "go public" on his word
 ```
 
 ---
 
-## 2. Planning review items
+## 2. Decisions 1-5
 
-| # | Item | Result |
+| # | Decision | Result |
 |---|---|---|
-| 1 | Simple W = 8 ≤ 40 words | **40 words, 2 panels**. While the road step is open, the card shows 1 what-if and hides density / rules. One-sentence verdict: "Low-rise only: 8 m road allows 7 floors." The demo screen (step 3) is 38 words. `R2-simple-W8.png` |
-| 2 | Taller-layer rings | Only stations within **2 km** of the plot (map centre with no plot): **4 rings** on the demo, not 195 |
-| 3 | Release feedback (amended) | "Updating…" text + thin moving bar on the result card, `aria-busy`, and the KPI strip dims. Browser check: shown right after a width change, and gone after the result (`updating` false). The full job is not split |
-| 4 | Grouped edge labels | One label halfway along a run of road edges: `"1–3 · 8 m road (est.) · 2.0 m"` instead of three fighting labels. `R2-grouped-label.png`; unit tests for runs (incl. wrap-around) and the midpoint |
+| 1 | H.3 rule inspector: cut | Cut. "Rule inspector" is in "Next" in both READMEs; a DEVIATIONS row says each check row's clause chip and `research/RULES.md` stand in for it |
+| 2 | H.2 toggles, ≤ 30 min | Built (≈ 35 min with the setbacks layer, which did not exist). Browser: Setbacks on → layer visible with 2 features (band + edge); Design and Envelope off → both `visibility: none`; switching to Simple → envelope and design visible, setbacks hidden. `M5-setbacks.png` |
+| 3 | Editable assumptions | Built, details in §3 |
+| 4 | M5 polish pass | Done, details in §4 |
+| 5 | M7 screenshots | 6 files in `docs/screenshots/`, a table in the root README. Checked: not git-ignored; present in the clean copy |
 
-## 3. M4 part 2
+## 3. Editable assumptions (Expert → Assumptions)
 
-- **KPI strip** (Expert, top centre, live): max floor area · height · storeys · checks. Demo W = 12: "16,001 m² · 70.5 m · 23 · 12/12 ✓". With +10 % bonus: "17,601 m² · 79.5 m · 26 · 12/12 ✓".
-- **Expert left steps:**
-  - 1 Plot · 2 Road · 3 Type · 4 Bonus, each one line with ✓ when done;
-  - click a step to reopen it; the first unfinished step opens by itself;
-  - assumptions folded; "What the rules allow" and site checks below;
-  - ALL-CAPS headers removed.
-- **Type / bonus inputs:**
-  - Condo · Office · Hotel.
-  - Bonus: a % field for ข้อ 52, 53, 54 and 55, and a level picker for ข้อ 56. The total is capped from the JSON, and FAR is shown live (8 → 8.8 at +10 %).
-  - ข้อ 54 (park & ride) is disabled unless the nearest station is one of the JSON's listed stations within 500 m.
-  - The FAR check limit follows: "≤ 8.80 (17,601 m²)".
-  - Bonuses are part of undo / redo.
-- **Footer line:** "A feasibility study, not a design. An architect must check and sign." Bottom-left of the map in Expert, on a white backdrop; hidden below 640 px.
-- **Area table** (Expert, under the section strip, folded):
-  - plot area, max floor area, and one row per floor (floor, use, area);
-  - the total three ways: **Σ rows 15,878.66 = design card 15,878.66 = measured by the FAR check 15,878.66 m²**;
-  - coverage, open space and open-space-vs-land rows;
-  - the header says "totals match ✓" (or "totals differ" in red);
-  - a new vitest asserts the three-way match to 0.01 m² for every buildable design at W = 12 and 8.
-- **Full scenario in the URL hash:**
-  - `#mode=…&s=<base64url>` holds the plot (7 decimals), road edges (width, confirmed, road name), type and bonuses;
-  - written on every change, but not mid-drag;
-  - a reload or shared link restores it, fits the camera and opens Simple at step 3;
-  - a broken link shows a toast and starts empty;
-  - vitest round-trip + malformed-input tests.
-- **Amber only for clicked things:**
-  - Detailed mode's cut buildings and the plot-overlap fill are now light red (same family as "Built over");
-  - road estimates were already light blue;
-  - amber on the map is now only the clicked proof (and the Simple amber verdict dot);
-  - panel warning chips keep amber for "check this".
+- **Fields (range):**
+  - ground floor height 4.5 m (3-8);
+  - typical floor height 3.0 m, office 3.6 m (2.6-5);
+  - net / gross efficiency 75 / 80 / 65 % by type (50-95);
+  - condo unit 35 m² (20-300), shown for condo only;
+  - hotel room 32 m² (18-120), shown for hotel only;
+  - m² per stall 30 (20-45);
+  - permeable share of open space 60 % (0-100);
+  - "parking counted in floor area" yes / no.
+- **Input rules:**
+  - Out of range: the edit is refused, the field goes back to the last value and a red line says the range ("Use 2.6–5 m"). Browser check: the store is unchanged.
+  - An edited value gets a dot; "Reset N edited" clears them all.
+  - Floor height and efficiency defaults follow the type until edited.
+- **Undo and share link:** edits are in undo / redo and in the share link. The decoder keeps only known keys with in-range values, so a hand-edited link can't inject bad values (test).
+- **Engine:**
+  - The resolved assumptions go into the envelope (floor heights), the generators (programme, parking, open-air stalls) and the checker's own inputs.
+  - Found on the way: the envelope used 3.0 m floors for offices while the designs used 3.6 m (AI miss #40). Both now read the same value.
+- **"Parking counted in floor area: no":**
+  - What it affects: parking floors leave the floor area used for the **FAR limit only**. The open space ratio, the parking requirement and the 10,000 m² extra-large test still use the total.
+  - The generators re-stack with the parking area as an allowance until it settles. A step is kept only if its non-parking area still fits the FAR cap.
+  - The FAR row reads "(…, parking not counted)", and the area table adds "Parking, not counted for FAR" and "Counted for FAR" rows; its totals check compares against that.
+  - Test: design A at W = 12 grows by more than 100 m², and FAR still passes with the checker's own measurement.
+  - It is a what-if: whether parking counts is for the architect to confirm, and the panel says so.
+- **Browser check (demo, W = 8):**
+  - typical 3.5 m → 8,365 m², 22 m;
+  - unit 60 m² → 69 homes (was 149);
+  - parking not counted → FAR "2.79 (5,576 m², parking not counted)", area table "totals match ✓";
+  - undo restores parking-counted;
+  - a new tab from the link has the same assumptions;
+  - reset brings back 9,752 m².
+- **Tests:** `tests/assumptions.test.ts` (5) plus a scenario test for bad values. Default assumptions give exactly the old results.
 
-## 4. M6 break-it pass (EXPECTATIONS §I), headless Chrome, 11:55-12:05
+## 4. M5 polish pass
 
-| Input | Result | Observed |
-|---|---|---|
-| Self-intersecting polygon | **PASS** (after fix) | A corner dragged across the opposite edge stops at its last valid spot; no crossing shape is ever accepted; toast "Plot edges can't cross: kept the last valid shape". First run: **FAIL**, no message (AI miss #35) |
-| Plot < 50 m² | **PASS** | 30 m² plot: error "Plot is too small (30 m²)", 0 designs, no crash |
-| Plot ≥ 10 ha | **PASS** | 10.8 ha: "Very large plot (10.8 ha)" warning plus the site warnings (crosses roads, zone boundary, …). Engine ok, 2 designs. Headless took 5-10 s to settle; on real hardware the worker keeps the UI responsive, but this size is unmeasured |
-| 40-vertex / very concave / triangle | **PASS** | Every envelope vertex checked against the plot: star 15,569 / U 682 / triangle 156 vertices, **0 outside**; 3 designs each. Plus vitest: L-shape 2,000-point property test and 200 random plots |
-| Outside Bangkok / other zone / across zones | **PASS** | Chonburi: blocked, "Outside Bangkok's city plan area". Zone พ.3: blocked, "Plot is in zone พ.3 (commercial)". Across the ย.10 edge: warnings "Plot crosses a zone boundary" + "46 % of the plot is outside the zoning map", ย.10 used as the largest share |
-| No road edge | **PASS** (after fix) | Engine status `no-road`, 0 designs. Expert: "Which edge faces the road?" prompt. Simple: "Tap the side of the plot on the road." (was "too narrow": AI miss #36) |
-| Two road edges, different widths | **PASS** | Roads 1 = 12 m, 3 = 8 m. Both edges get road terms (band + clear + sky + MR 33). The height check names edge 3 (the narrower road) as binding: "22.5 m at 3.3 m from edge 3 (allowed 22.5 m)" |
-| Width 0, 3, 100 | **PASS** | 0 → 3 m, 3 → 3 m, 100 → 60 m. Toast "Road width kept within 3-60 m", plus the note under the card. (The toast seen at "3" is still the one from "0") |
-| Rapid dragging | **PASS** | 60 fast moves then release: final plot 1,875.8 m² = engine result 1,875.8 m² (Δ 0.000 %); no stale result; no false "can't cross" message. Smoothness: real-Chrome timings below |
-| Overpass down / offline | **PASS** | Browser offline: W 12 → 8 recomputed instantly (gate fails, only C). 0 page errors. Overpass isn't used (tile context, Q1); loaded tiles stay |
-| Reload share URL | **PASS** | 281-char URL; the new tab has the identical plot, roads (10 m + 6 m), type hotel, bonus 5 %, all three GFAs and the mode. A broken link shows "That link could not be read; start a new plot" |
-| 375 px wide | **PASS** (after fix) | Simple and Expert: scrollWidth 375. Expert was 553 px wide; my first check reported PASS by comparing against `innerWidth` (AI miss #34). Expert on a phone now uses a design bottom sheet. `B-12-375-*.png` |
+- **Amber:** the panels no longer use amber except for the clicked check row (the proof).
+  - The site-check "!" chips are now dark neutral.
+  - The no-road prompt uses the road-edge blue, with `role="status"` instead of `"alert"`.
+- **Step guide (Expert, bottom of the map):**
+  - Before: it stayed up after the plot was finished, saying "Plot ready… Next build: …".
+  - Now it follows the steps: Step 1 mark plot → Step 2 mark the road side → "Check the road width" while the width is an estimate → hidden once everything is confirmed.
+- **Loading:** the Expert inputs panel was an empty white strip until the map loaded. It now appears with the map.
+- **Phone:**
+  - **Camera:** it used fixed desktop padding (380 px left), so on a 390 px phone the plot was off screen. The padding now scales with the map, and the plot sits between the top card and the result sheet. `docs/screenshots/6-phone.jpg`
+  - **Map controls:** in Simple on phones, attribution moves top-right and starts collapsed (MapLibre opened it over the step card). The zoom buttons (pinch works) and the scale bar are hidden, so nothing shows through the sheet.
+- **Copy:** the site check "You'll confirm the road edge and width in the next step" is now "Confirm the road edge and width under Road", which still reads right after the road is confirmed.
+- **Checked, no change needed:** Expert empty state, Simple empty state, no-road state, broken share link, loading state (`app/test-artifacts/S-*.png`).
 
-**H.6 evidence** (Amitesh, real Chrome, `?perf=1`, production build):
+## 5. Break-it re-run (regression, 13:55, dev server)
 
-| Job | Measured | Target |
-|---|---|---|
-| `worker:envelope:compute` (per drag frame) | 0-3 ms | < 16 ms ✓ |
-| `worker:full:compute` | 2-7 ms | — |
-| `worker:full:designs` | 19-24 ms | — |
-| Full job total (on release) | ≈ 27-31 ms | < 50 ms ✓ |
+All 12 rows of EXPECTATIONS §I pass again; the results match the 12:05 run (see the previous report in git history for each row's detail). Page errors: none.
 
-Addendum B closed. No more perf work unless a break-it row fails (none did).
+## 6. Known bugs and gaps (blunt)
+- **H.2 has no "Rules" layer:** rules stay in the left panel. **H.3 is cut.**
+- **Toggle labels are tight:** "Envelope / Design / Setbacks" fit in the 152 px control at 10 px.
+- **Setbacks layer:** shows the ground floor of the envelope class on screen (high-rise when allowed), not per design.
+- **Design toggle off:** the envelope stays at the faded opacity it uses when a design is shown.
+- **"Parking not counted":** has no effect on a design that is not FAR-limited (e.g. the demo's low-rise C, limited by height). This is correct, but a user may expect a change.
+- **Expert on a phone:** still little map; Simple is the phone mode.
+- **10 ha plots:** settle slowly headless; unmeasured on real hardware.
+- **Not faked:** every number comes from the engine, JSON or checker. The README screenshots are real states; the proof shot was zoomed out 0.9 levels after the automatic framing so the tower fits.
 
-## 5. Known bugs and gaps (blunt)
-- **Not built:** rule inspector (H.3: toggle a rule off and see the removed volume), layer toggles Envelope / Design / Setbacks / Rules (H.2), editable assumptions (C: shown read-only).
-- **Expert on a phone** has no horizontal scroll, but the inputs panel and design sheet leave little map. Simple is the intended phone mode.
-- **Bonus inputs** take the % directly. The user must meet each clause's condition (units, open space, parking, storage, rating); the panel says so.
-- **10 ha plots** settle slowly headless (5-10 s, SwiftShader). Not measured on real hardware.
-- **Panel warnings** (site-check "!" chips, the no-road banner) are still amber-toned; the map uses amber only for the clicked proof.
-- **Not faked:** every number comes from the engine, JSON or checker. The three area totals are computed independently.
-
-## 6. Files this round
+## 7. Files this round
 - **New:**
-  - `src/ui/ExpertSteps.tsx`, `src/ui/ExpertExtras.tsx` (KPI strip, footer), `src/ui/scenario.ts`;
-  - `tests/scenario.test.ts`.
+  - `app/tests/assumptions.test.ts`;
+  - `docs/screenshots/1-simple-demo.jpg … 6-phone.jpg`.
 - **Changed:**
-  - `ClientShell.tsx` (Expert layout, hash scenario, bonuses → engine, phone layout), `MapView.tsx` (grouped labels, rings near the plot, refused-drag toast, `fitPlot`), `layers.ts` (EdgeLabel, ring filter, colours);
-  - `DesignPanel.tsx` (area table, phone sheet), `Simple.tsx` (compact card, shimmer), `verdict.ts` (one-sentence gate verdict, no-road prompt), `checker.ts` (`measured` on the FAR row), `rules.ts` (bonus options), `store.ts` (bonuses, `restoreScenario`, `updating`), `roadGroups.ts` (runs, midpoint);
-  - Legend / ViewControl / StepGuide / RulesSummary / SiteChecks (phone hiding, no ALL-CAPS), `globals.css` (shimmer);
-  - tests: designs, simple, roadGroups.
+  - engine: `assumptions.ts` (editable assumptions, ranges, sanitise), `designs/common.ts`, `designs/index.ts` (assumptions in context; shared envelope / region caches; parking-outside-FAR re-stack), `index.ts`, `checker.ts` (FAR without parking when set), `worker.ts`, `verdict.ts`, `siteChecks.ts` (copy);
+  - `store.ts` (assumptions, layers), `ui/scenario.ts`, `site/engineClient.ts`, `app/ClientShell.tsx`, `app/globals.css`;
+  - `map/MapView.tsx` (toggles, setbacks data, responsive camera padding, attribution), `map/layers.ts` (setbacks layer, `setLayerToggles`);
+  - `ui/ExpertSteps.tsx` (editable assumptions), `ui/ViewControl.tsx` (toggle row), `ui/Legend.tsx`, `ui/DesignPanel.tsx` (area table), `ui/StepGuide.tsx`, `ui/RulesSummary.tsx`, `ui/SiteChecks.tsx`;
+  - `tests/scenario.test.ts`;
+  - `README.md` (screenshots, Next), `app/README.md` (Next), `DEVIATIONS.md`, `research/AI_MISSES_LOG.md` (#38-#41).
 
-## 7. Next (for the planning session to choose)
-1. H.2 layer toggles + H.3 rule inspector (≈ 2-3 h together), or cut them (EXPECTATIONS J cut order lists the inspector ghost first).
-2. Editable assumptions (≈ 1.5 h).
-3. M5 polish pass, then M7: README screenshots; Amitesh writes the doc.
-4. "Go public" only after Amitesh confirms.
+## 8. Next
+1. Amitesh writes the submission doc (agents don't).
+2. "Go public" (push + Vercel) when Amitesh says so. The clean-copy build already passes.
+3. Optional, only if asked: a Rules map layer; setbacks per selected design.
 
 ### How to run
 ```powershell

@@ -51,7 +51,7 @@ export interface CheckInput {
   floors: CheckFloor[];
   openAirStalls: number;
   station: StationResult | null;
-  assumptions: { permeableShare: number; efficiency: number; condoUnitM2: number; hotelRoomM2: number; parkingStallM2: number };
+  assumptions: { permeableShare: number; efficiency: number; condoUnitM2: number; hotelRoomM2: number; parkingStallM2: number; parkingInFar?: boolean };
 }
 
 const TOL_M = 0.01;
@@ -216,7 +216,10 @@ export function checkDesign(inp: CheckInput): CheckRow[] {
   // 1 FAR
   const bonus = Math.min(RULES.farBonus.capPct, inp.bonusPcts.reduce((s, x) => s + Math.max(0, x), 0));
   const farMax = RULES.far.max * (1 + bonus / 100);
-  row({ id: "far", measured: gfa, label: "Floor area ratio", value: `${f2(gfa / A)} (${f0(gfa)} m²)`, limit: `≤ ${f2(farMax)} (${f0(farMax * A)} m²)`, status: pf(gfa <= farMax * A + TOL_M2), clause: RULES.far.source, cause: { extrusions: floorBlocks(floors), focus: focusOf(footprint) } });
+  // Floor area counted for FAR: every floor, or every non-parking floor when parking is not counted (assumption).
+  const farGfa = inp.assumptions.parkingInFar === false ? areas.reduce((s, a, i) => s + (floors[i].use === "parking" ? 0 : a), 0) : gfa;
+  const noPark = farGfa !== gfa ? ", parking not counted" : "";
+  row({ id: "far", measured: farGfa, label: "Floor area ratio", value: `${f2(farGfa / A)} (${f0(farGfa)} m²${noPark})`, limit: `≤ ${f2(farMax)} (${f0(farMax * A)} m²)`, status: pf(farGfa <= farMax * A + TOL_M2), clause: RULES.far.source, cause: { extrusions: floorBlocks(floors), focus: focusOf(footprint) } });
 
   // 2 OSR, 3 permeable, 4 open space % of land
   const osrReq = (RULES.osr.pctOfGfa / 100) * gfa;

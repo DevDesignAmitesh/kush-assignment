@@ -232,3 +232,16 @@ body {
   from { background-position: 100% 0; }
   to { background-position: -100% 0; }
 }
+
+/* Simple on phones: the result sheet covers the bottom of the map. Attribution moves to the top right; zoom
+   buttons (pinch zooms) and the scale bar are hidden. */
+@media (max-width: 639px) {
+  .ui-simple .maplibregl-ctrl-bottom-right {
+    top: 0;
+    bottom: auto;
+  }
+  .ui-simple .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group,
+  .ui-simple .maplibregl-ctrl-bottom-left .maplibregl-ctrl-scale {
+    display: none;
+  }
+}

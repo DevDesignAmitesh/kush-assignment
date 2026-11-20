@@ -5,8 +5,7 @@
 import { useState } from "react";
 import { useStore } from "@/store";
 import { RULES } from "@/engine/rules";
-import { DESIGN_DEFAULTS, floorHeightsFor } from "@/engine/designs/common";
-import { CHECK_ASSUMPTIONS } from "@/engine";
+import { ASSUMPTION_RANGES, assumptionInRange, defaultAssumptions, resolveAssumptions, sanitizeAssumptions, type AssumptionOverrides, type NumericAssumption } from "@/engine/assumptions";
 import type { SiteResult } from "@/engine/siteChecks";
 import { ringAreaM2 } from "@/engine/geo";
 import { RoadEdges } from "./RoadEdges";
@@ -223,26 +222,116 @@ function BonusInputs({ site }: { site: SiteResult | null }) {
   );
 }
 
+type FieldSpec = { key: NumericAssumption; label: string; unit: string; scale: number; step: number; only?: "condo" | "hotel" };
+const FIELDS: FieldSpec[] = [
+  { key: "groundFloorM", label: "Ground floor height", unit: "m", scale: 1, step: 0.1 },
+  { key: "typicalFloorM", label: "Typical floor height", unit: "m", scale: 1, step: 0.1 },
+  { key: "efficiency", label: "Net / gross efficiency", unit: "%", scale: 100, step: 1 },
+  { key: "condoUnitM2", label: "Condo unit size", unit: "m²", scale: 1, step: 1, only: "condo" },
+  { key: "hotelRoomM2", label: "Hotel room size", unit: "m²", scale: 1, step: 1, only: "hotel" },
+  { key: "parkingStallM2", label: "Area per parking stall", unit: "m²", scale: 1, step: 1 },
+  { key: "permeableShare", label: "Permeable share of open space", unit: "%", scale: 100, step: 1 },
+];
+const tidy = (x: number) => +x.toFixed(2);
+
+/** Editable design assumptions (EXPECTATIONS C). In range or refused; in the URL scenario and undo history. */
 function Assumptions() {
   const type = useStore((s) => s.buildingType);
-  const fh = floorHeightsFor(type);
-  const rows: [string, string][] = [
-    ["Floor heights", `ground ${fh.groundM} m · typical ${fh.typicalM} m`],
-    ["Net / gross efficiency", `${Math.round(DESIGN_DEFAULTS.efficiency[type] * 100)} %`],
-    ["Condo unit / hotel room", `${DESIGN_DEFAULTS.condoUnitM2} m² / ${DESIGN_DEFAULTS.hotelRoomM2} m²`],
-    ["Area per parking stall", `${DESIGN_DEFAULTS.parkingStallM2} m²`],
-    ["Permeable share of open space", `${Math.round(CHECK_ASSUMPTIONS.permeableShare * 100)} %`],
-    ["Parking counted in floor area", "yes"],
-  ];
+  const over = useStore((s) => s.assumptions);
+  const a = resolveAssumptions(type, over);
+  const def = defaultAssumptions(type);
+  const write = (next: AssumptionOverrides) => {
+    useStore.getState().setAssumptions(next);
+    useStore.getState().commit();
+  };
+  const setNum = (k: NumericAssumption, v: number) => {
+    const next = { ...over };
+    if (Math.abs(v - def[k]) < 1e-9) delete next[k];
+    else next[k] = v;
+    write(next);
+  };
+  const edited = Object.keys(sanitizeAssumptions(over)).length;
   return (
-    <dl className="grid grid-cols-[1fr_auto] gap-x-3 gap-y-0.5 text-[12px]">
-      {rows.map(([k, v]) => (
-        <div key={k} className="contents">
-          <dt className="text-neutral-500">{k}</dt>
-          <dd className="text-right tabular-nums">{v}</dd>
-        </div>
+    <div className="space-y-1 text-[12px]">
+      {FIELDS.filter((f) => !f.only || f.only === type).map((f) => (
+        <AssumptionField key={`${f.key}:${a[f.key]}`} spec={f} value={a[f.key]} edited={f.key in over} onSet={(v) => setNum(f.key, v)} />
       ))}
-      <div className="col-span-2 pt-1 text-[11px] text-neutral-400">Design assumptions, not law. Editing them comes after v1.</div>
-    </dl>
+      <label className="flex items-center gap-2 pt-0.5">
+        <span className="flex-1 text-neutral-600">
+          Parking counted in floor area {"parkingInFar" in over && <EditedDot />}
+        </span>
+        <input
+          type="checkbox"
+          checked={a.parkingInFar}
+          onChange={(e) => {
+            const next = { ...over };
+            if (e.target.checked === def.parkingInFar) delete next.parkingInFar;
+            else next.parkingInFar = e.target.checked;
+            write(next);
+          }}
+          className="h-3.5 w-3.5 accent-neutral-900"
+        />
+      </label>
+      {!a.parkingInFar && <div className="text-[11px] text-neutral-500">Parking floors are left out of the FAR floor area only. Check this with the architect.</div>}
+      <div className="flex items-center justify-between pt-1 text-[11px] text-neutral-400">
+        <span>Design assumptions, not law.</span>
+        {edited > 0 && (
+          <button onClick={() => write({})} className="font-semibold text-neutral-600 underline-offset-2 hover:underline">
+            Reset {edited} edited
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+const EditedDot = () => <span className="ml-0.5 inline-block h-1.5 w-1.5 rounded-full bg-neutral-900 align-middle" title="Edited" />;
+
+function AssumptionField({ spec, value, edited, onSet }: { spec: FieldSpec; value: number; edited: boolean; onSet: (v: number) => void }) {
+  const shown = tidy(value * spec.scale);
+  const [draft, setDraft] = useState(String(shown));
+  const [err, setErr] = useState<string | null>(null);
+  const r = ASSUMPTION_RANGES[spec.key];
+  const apply = () => {
+    const v = Number(draft.replace(",", ".")) / spec.scale;
+    if (draft.trim() === "" || !assumptionInRange(spec.key, v)) {
+      setErr(`Use ${tidy(r.min * spec.scale)}–${tidy(r.max * spec.scale)} ${spec.unit}`);
+      setDraft(String(shown));
+      return;
+    }
+    setErr(null);
+    if (tidy(v * spec.scale) !== shown) onSet(v);
+  };
+  const id = `asm-${spec.key}`;
+  return (
+    <div>
+      <div className="flex items-center gap-2">
+        <label htmlFor={id} className="flex-1 text-neutral-600">
+          {spec.label} {edited && <EditedDot />}
+        </label>
+        <input
+          id={id}
+          inputMode="decimal"
+          value={draft}
+          aria-invalid={!!err}
+          onChange={(e) => setDraft(e.target.value)}
+          onBlur={apply}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+            if (e.key === "Escape") {
+              setDraft(String(shown));
+              setErr(null);
+            }
+          }}
+          className={`w-14 rounded border px-1 py-0.5 text-right tabular-nums ${err ? "border-red-500" : "border-neutral-300"}`}
+        />
+        <span className="w-5 text-neutral-400">{spec.unit}</span>
+      </div>
+      {err && (
+        <div role="alert" className="text-right text-[11px] text-red-600">
+          {err}
+        </div>
+      )}
+    </div>
   );
 }

@@ -26,7 +26,7 @@ ctx.onmessage = (e: MessageEvent<EngineJob>) => {
     return;
   }
   const t1 = performance.now();
-  const designs = compute.status === "ok" ? computeDesigns(compute, { type: inp.type, bonusPcts: inp.bonusPcts, station }) : [];
+  const designs = compute.status === "ok" ? computeDesigns(compute, { type: inp.type, bonusPcts: inp.bonusPcts, station, assumptions: inp.assumptions }) : [];
   const msDesigns = performance.now() - t1;
   const t2 = performance.now();
   let wi: ReturnType<typeof whatIfs> = [];

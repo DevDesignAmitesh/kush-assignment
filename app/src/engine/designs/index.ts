@@ -9,6 +9,7 @@ import type { BuildingType, FarResult } from "../far";
 import { RULES } from "../rules";
 import { assignUses, DESIGN_DEFAULTS, floorHeightsFor, programmeFor, type Design, type DesignId, type LimitedBy } from "./common";
 import { iterateCoverage, stackFloors, type Stack } from "./stack";
+import { defaultAssumptions, type Assumptions } from "../assumptions";
 
 export * from "./common";
 
@@ -19,13 +20,19 @@ export interface DesignContext {
   plotAreaM2: number;
   far: FarResult;
   gate: GateResult;
+  /** Editable design assumptions (defaults for the type when absent). */
+  a?: Assumptions;
+  /** Extra floor area on top of the FAR cap (parking not counted in FAR). Internal. */
+  farAllowanceM2?: number;
 }
+
+const asm = (ctx: DesignContext): Assumptions => ctx.a ?? defaultAssumptions(ctx.type);
 
 const LOW_RISE_GFA_CAP = () => RULES.highRise.extraLargeMinGfaM2 - 0.01; // "< 10,000 m²"
 type CapSource = "far" | "gate" | "lowRiseArea";
 
 function gfaCapFor(ctx: DesignContext, cls: Design["cls"]): { cap: number; source: CapSource } {
-  const far = ctx.far.maxGfaM2;
+  const far = ctx.far.maxGfaM2 + (ctx.farAllowanceM2 ?? 0);
   const other = cls === "highRise" ? ctx.gate.maxGfaM2 : LOW_RISE_GFA_CAP();
   if (far <= other) return { cap: far, source: "far" };
   return { cap: other, source: cls === "highRise" ? "gate" : "lowRiseArea" };
@@ -86,7 +93,7 @@ function assemble(
   // Copies: assignUses writes each floor's use, and stacks can be shared between parking variants.
   const floors = stack.floors.map((f) => ({ ...f }));
   if (!floors.length) return notBuildable(id, name, cls, `Not buildable: no floor plate of at least ${DESIGN_DEFAULTS.minPlateM2} m² fits the allowed space.`);
-  const park = assignUses(ctx.type, floors, maxParkingFloors, openAirStalls);
+  const park = assignUses(ctx.type, floors, maxParkingFloors, openAirStalls, asm(ctx));
   const gfa = floors.reduce((s, f) => s + f.areaM2, 0);
   const footprint = floors[0].areaM2;
   return {
@@ -101,7 +108,7 @@ function assemble(
     footprintM2: footprint,
     coverageCapM2: stack.cap,
     openSpaceM2: ctx.plotAreaM2 - footprint,
-    programme: programmeFor(ctx.type, floors),
+    programme: programmeFor(ctx.type, floors, asm(ctx)),
     parking: { required: park.required, provided: park.provided, openAirStalls, note: park.note },
     notes,
     limitedBy: limitedByOf(stack, env, capSource, ctx),
@@ -133,19 +140,29 @@ function notBuildable(id: DesignId, name: string, cls: Design["cls"], reason: st
 
 // Per-context caches: A, B, C and their parking variants share one envelope per class and one
 // plot-offset region cache (the same offsets recur across designs). Pure: keyed by the ctx object.
-const ctxCache = new WeakMap<DesignContext, { env: Partial<Record<Design["cls"], Envelope>>; region?: (d: number[]) => MultiPolygon; lowStack?: Stack & { cap: number; shrunk: boolean } }>();
+const ctxCache = new WeakMap<DesignContext, { lowStack?: Stack & { cap: number; shrunk: boolean } }>();
 function cacheOf(ctx: DesignContext) {
   let c = ctxCache.get(ctx);
-  if (!c) ctxCache.set(ctx, (c = { env: {} }));
+  if (!c) ctxCache.set(ctx, (c = {}));
   return c;
 }
+// Envelopes and offset regions only depend on the geometry (and floor heights), so they are shared by the
+// derived contexts the parking-outside-FAR pass creates.
+const envCache = new WeakMap<EdgeSpec[], Map<string, Envelope>>();
+const regionCache = new WeakMap<XY[], (d: number[]) => MultiPolygon>();
 function envFor(ctx: DesignContext, cls: Design["cls"]): Envelope {
-  const c = cacheOf(ctx);
-  return (c.env[cls] ??= computeEnvelope(ctx.ring, ctx.specs, cls, floorHeightsFor(ctx.type)));
+  const fh = floorHeightsFor(ctx.type, asm(ctx));
+  let m = envCache.get(ctx.specs);
+  if (!m) envCache.set(ctx.specs, (m = new Map()));
+  const key = `${cls}|${fh.groundM}|${fh.typicalM}`;
+  let e = m.get(key);
+  if (!e) m.set(key, (e = computeEnvelope(ctx.ring, ctx.specs, cls, fh)));
+  return e;
 }
 function regionFor(ctx: DesignContext) {
-  const c = cacheOf(ctx);
-  return (c.region ??= regionMaker(ctx.ring));
+  let r = regionCache.get(ctx.ring);
+  if (!r) regionCache.set(ctx.ring, (r = regionMaker(ctx.ring)));
+  return r;
 }
 
 // ---- plate geometry: offsets measured from the PLOT edges ----
@@ -261,7 +278,7 @@ export function lowRise(ctx: DesignContext, parkingFloors = 1): Design {
     return { ...stackFloors(env.slices, (_s, k) => region(maxv(setbacksOf(env, k), foot)), gfaCap, { maxFloors: DESIGN_DEFAULTS.lowRiseMaxFloors }), shrunk: d > 0 };
   }));
   const openSpace = stack.floors.length ? ctx.plotAreaM2 - stack.floors[0].areaM2 : 0;
-  const openAir = Math.floor((DESIGN_DEFAULTS.openAirParkingShare * openSpace) / DESIGN_DEFAULTS.parkingStallM2);
+  const openAir = Math.floor((DESIGN_DEFAULTS.openAirParkingShare * openSpace) / asm(ctx).parkingStallM2);
   return assemble("C", "Low-rise", "lowRise", ctx, stack, env, source, parkingFloors, [], openAir);
 }
 
@@ -288,14 +305,39 @@ function firstParkingPass(variants: (() => Design)[]): Design {
 
 const range = (a: number, b: number) => Array.from({ length: b - a + 1 }, (_, i) => a + i);
 
+const P0 = DESIGN_DEFAULTS.podiumFloors;
+const makeA = (c: DesignContext) => firstParkingPass([() => terracedBlock(c)]);
+// B: a taller podium holds more parking floors (within FAR and the envelope).
+const makeB = (c: DesignContext) => firstParkingPass(range(P0, P0 + 5).map((p) => () => podiumTower(c, p)));
+const makeC = (c: DesignContext) => firstParkingPass(range(1, 3).map((n) => () => lowRise(c, n)));
+
+export const parkingAreaOf = (d: Pick<Design, "floors">) => d.floors.filter((f) => f.use === "parking").reduce((s, f) => s + f.areaM2, 0);
+
+/**
+ * "Parking counted in floor area: no" (DEVIATIONS M5): parking floors do not count toward the FAR limit, so the
+ * design may stack that much more floor area. Re-stack with the parking area as an allowance until it settles;
+ * keep a step only if its non-parking floor area still fits the FAR cap.
+ */
+function parkingOutsideFar(ctx: DesignContext, make: (c: DesignContext) => Design): Design {
+  let d = make(ctx);
+  if (asm(ctx).parkingInFar || !d.buildable) return d;
+  let allowance = 0;
+  for (let i = 0; i < 4; i++) {
+    const P = parkingAreaOf(d);
+    if (P <= allowance + 0.5) break;
+    const next = make({ ...ctx, farAllowanceM2: P });
+    if (!next.buildable || next.gfaM2 - parkingAreaOf(next) > ctx.far.maxGfaM2 + 0.01) break;
+    d = next;
+    allowance = P;
+  }
+  return d;
+}
+
 export function generateDesigns(ctx: DesignContext): Design[] {
-  const P0 = DESIGN_DEFAULTS.podiumFloors;
-  const C = firstParkingPass(range(1, 3).map((n) => () => lowRise(ctx, n)));
+  const C = parkingOutsideFar(ctx, makeC);
   if (!ctx.gate.permitted) {
     const why = `Not available: ${ctx.gate.reason} Only the low-rise design applies.`;
     return [notBuildable("A", "Terraced block", "highRise", why), notBuildable("B", "Podium + tower", "highRise", why), C];
   }
-  // B: a taller podium holds more parking floors (within FAR and the envelope).
-  const B = firstParkingPass(range(P0, P0 + 5).map((p) => () => podiumTower(ctx, p)));
-  return [firstParkingPass([() => terracedBlock(ctx)]), B, C];
+  return [parkingOutsideFar(ctx, makeA), parkingOutsideFar(ctx, makeB), C];
 }

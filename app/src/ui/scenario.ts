@@ -1,7 +1,9 @@
 // The whole scenario in the URL hash (EXPECTATIONS C "Share"): #mode=…&s=<base64url JSON>.
-// Plot to 7 decimals (~1 cm), road edges with width / confirmed / label, building type, FAR bonuses.
+// Plot to 7 decimals (~1 cm), road edges with width / confirmed / label, building type, FAR bonuses,
+// edited design assumptions (validated on the way in).
 import type { Snapshot } from "@/store";
 import type { BuildingType } from "@/engine/far";
+import { sanitizeAssumptions, type AssumptionOverrides } from "@/engine/assumptions";
 
 const TYPES: BuildingType[] = ["condo", "office", "hotel"];
 
@@ -11,6 +13,7 @@ interface Wire {
   r: [number, number, 0 | 1, string | null][];
   t: BuildingType;
   b: Record<string, number>;
+  a?: AssumptionOverrides;
 }
 
 const r7 = (x: number) => Math.round(x * 1e7) / 1e7;
@@ -34,6 +37,7 @@ export function encodeScenario(s: Snapshot): string | null {
     r: Object.entries(s.roadEdges).map(([k, e]) => [Number(k), e.widthM, e.confirmed ? 1 : 0, e.label ?? null]),
     t: s.buildingType,
     b: s.bonuses,
+    ...(Object.keys(s.assumptions ?? {}).length ? { a: s.assumptions } : {}),
   };
   return b64urlEncode(JSON.stringify(w));
 }
@@ -53,7 +57,7 @@ export function decodeScenario(code: string): Snapshot | null {
     }
     const bonuses: Record<string, number> = {};
     for (const [k, v] of Object.entries(w.b ?? {})) if (Number.isFinite(v) && v > 0) bonuses[k] = v;
-    return { plot: ring, roadEdges, roadEdgesSource: "user", buildingType: TYPES.includes(w.t) ? w.t : "condo", bonuses };
+    return { plot: ring, roadEdges, roadEdgesSource: "user", buildingType: TYPES.includes(w.t) ? w.t : "condo", bonuses, assumptions: sanitizeAssumptions(w.a) };
   } catch {
     return null;
   }

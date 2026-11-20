@@ -70,7 +70,7 @@ export interface WhatIf {
 
 const bestGfa = (inp: ComputeInputs, station: StationResult | null) => {
   const r = computeAll(inp);
-  return bestDesign(computeDesigns(r, { type: inp.type, bonusPcts: inp.bonusPcts, station }))?.design.gfaM2 ?? 0;
+  return bestDesign(computeDesigns(r, { type: inp.type, bonusPcts: inp.bonusPcts, station, assumptions: inp.assumptions }))?.design.gfaM2 ?? 0;
 };
 
 /** Move every corner that is not on a road edge away from the first road edge by `m` metres. */

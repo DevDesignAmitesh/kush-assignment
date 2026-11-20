@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { MapApi, ViewName } from "@/map/MapView";
 import { sound } from "./sound";
-import { useStore, type MapStyleMode } from "@/store";
+import { useStore, type MapLayers, type MapStyleMode } from "@/store";
 
 const MODES: [MapStyleMode, string][] = [
   ["simple", "Simple"],
@@ -83,6 +83,38 @@ export function ViewControl({ api }: { api: MapApi | null }) {
           </button>
         ))}
       </div>
+      <LayerToggles />
+    </div>
+  );
+}
+
+const LAYERS: [keyof MapLayers, string, string][] = [
+  ["envelope", "Envelope", "The 3D space the rules allow"],
+  ["design", "Design", "The selected design"],
+  ["setbacks", "Setbacks", "The strip the setbacks keep free at ground level"],
+];
+
+/** H.2 layer toggles (Expert only): show / hide envelope, design and setbacks on the map. */
+function LayerToggles() {
+  const layers = useStore((s) => s.layers);
+  return (
+    <div className="grid grid-cols-3 gap-0.5" role="group" aria-label="Map layers">
+      {LAYERS.map(([k, label, title]) => (
+        <button
+          key={k}
+          aria-pressed={layers[k]}
+          title={title}
+          onClick={() => {
+            sound.click();
+            useStore.getState().setLayer(k, !layers[k]);
+          }}
+          className={`rounded-md px-0 py-1 text-[10px] font-semibold tracking-tight ring-1 transition-[transform,background-color] duration-150 active:scale-95 ${
+            layers[k] ? "bg-neutral-900 text-white ring-neutral-900" : "bg-white text-neutral-500 ring-neutral-200 hover:text-neutral-800"
+          }`}
+        >
+          {label}
+        </button>
+      ))}
     </div>
   );
 }

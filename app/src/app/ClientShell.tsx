@@ -165,6 +165,7 @@ export default function ClientShell() {
   const dragging = useStore((s) => s.dragging);
   const bonuses = useStore((s) => s.bonuses);
   const bonusPcts = useMemo(() => Object.values(bonuses), [bonuses]);
+  const assumptions = useStore((s) => s.assumptions);
 
   // Engine runs in Web Workers, latest job wins (DEVIATIONS M4 performance). While dragging only the
   // envelope is computed (≤ 1 job in flight, newer geometry replaces the queued one); on release the full
@@ -190,13 +191,13 @@ export default function ClientShell() {
       useStore.setState({ updating: false });
       return;
     }
-    const inp = { plot, roadEdges: roadWidths, type: buildingType, bonusPcts };
+    const inp = { plot, roadEdges: roadWidths, type: buildingType, bonusPcts, assumptions };
     useStore.setState({ updating: true });
     if (dragging) {
       c.cancelFull();
       c.run("envelope", { inp, station, wantWhatIfs: false });
     } else c.run("full", { inp, station, wantWhatIfs: uiModeForEngine === "simple" });
-  }, [plot, blocked, roadWidths, buildingType, bonusPcts, station, dragging, uiModeForEngine]);
+  }, [plot, blocked, roadWidths, buildingType, bonusPcts, assumptions, station, dragging, uiModeForEngine]);
   // No plot / blocked plot: nothing is shown, whatever a worker last returned.
   const live = !!plot && !blocked;
   const compute = live ? engine.compute : null;
@@ -223,19 +224,19 @@ export default function ClientShell() {
     const m = new URLSearchParams(window.location.hash.slice(1)).get("mode");
     if (m === "expert" || m === "simple") useStore.getState().setUiMode(m);
   }, []);
-  // The whole scenario (plot, roads, type, bonuses) is mirrored to #s=… so a reload / shared link restores it.
+  // The whole scenario (plot, roads, type, bonuses, assumptions) is mirrored to #s=… so a reload / shared link restores it.
   // Not while dragging (the release writes it once). The hash is only written after the first restore ran.
   const hashReady = useRef(false);
   useEffect(() => {
     if (!hashReady.current || dragging) return;
     const p = new URLSearchParams(window.location.hash.slice(1));
     p.set("mode", uiMode);
-    const code = encodeScenario({ plot, roadEdges, roadEdgesSource: "user", buildingType, bonuses });
+    const code = encodeScenario({ plot, roadEdges, roadEdgesSource: "user", buildingType, bonuses, assumptions });
     if (code) p.set("s", code);
     else p.delete("s");
     const next = `#${p.toString()}`;
     if (next !== window.location.hash) window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}${next}`);
-  }, [uiMode, plot, roadEdges, buildingType, bonuses, dragging]);
+  }, [uiMode, plot, roadEdges, buildingType, bonuses, assumptions, dragging]);
 
   // Steps: no plot → 1; a new plot → 2 (road); the user moves on with "Next".
   const hadPlot = useRef(false);
@@ -389,7 +390,7 @@ export default function ClientShell() {
 
       <main className="relative flex-1 overflow-hidden">
         {/* The map stops at the right panel, so its controls and attribution stay visible and clickable. */}
-        <div className={`absolute inset-y-0 left-0 right-0 ${uiMode === "expert" ? "sm:right-[340px] max-sm:bottom-[45%]" : ""}`}>
+        <div className={`absolute inset-y-0 left-0 right-0 ${uiMode === "expert" ? "sm:right-[340px] max-sm:bottom-[45%]" : "ui-simple"}`}>
           <MapView onReady={onReady} />
         </div>
 
@@ -401,9 +402,9 @@ export default function ClientShell() {
           </>
         ) : (
         <>
-        <div className="panel-in pointer-events-auto absolute left-4 top-4 max-h-[calc(100%-8rem)] w-80 max-w-[calc(100%-2rem)] overflow-y-auto rounded-xl bg-white/95 px-4 py-1.5 shadow-md ring-1 ring-black/5 max-sm:left-2 max-sm:top-2 max-sm:max-h-[42%] max-sm:w-[calc(100%-1rem)] max-sm:max-w-none" aria-label="Inputs">
+        {api && <div className="panel-in pointer-events-auto absolute left-4 top-4 max-h-[calc(100%-8rem)] w-80 max-w-[calc(100%-2rem)] overflow-y-auto rounded-xl bg-white/95 px-4 py-1.5 shadow-md ring-1 ring-black/5 max-sm:left-2 max-sm:top-2 max-sm:max-h-[42%] max-sm:w-[calc(100%-1rem)] max-sm:max-w-none" aria-label="Inputs">
           <ExpertSteps site={site} api={api} />
-        </div>
+        </div>}
         <KpiStrip />
         <FooterLine />
 

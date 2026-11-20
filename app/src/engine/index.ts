@@ -4,8 +4,8 @@ import { validatePlot } from "./polygon";
 import { computeEnvelope, type EdgeSpec, type Envelope, type FloorHeights } from "./envelope";
 import { highRiseGate, type GateResult } from "./classify";
 import { farLimit, openSpace, type BuildingType, type FarResult, type OpenSpaceResult } from "./far";
-import { clampRoadWidth, DEFAULT_FLOORS, DESIGN_ASSUMPTIONS } from "./assumptions";
-import { generateDesigns, DESIGN_DEFAULTS, type Design } from "./designs";
+import { clampRoadWidth, DESIGN_ASSUMPTIONS, resolveAssumptions, type AssumptionOverrides } from "./assumptions";
+import { generateDesigns, type Design } from "./designs";
 import { checkDesign, type CheckRow } from "./checker";
 import type { StationResult } from "./siteChecks";
 
@@ -17,6 +17,8 @@ export interface ComputeInputs {
   type: BuildingType;
   bonusPcts?: number[];
   floors?: FloorHeights;
+  /** Edited design assumptions (defaults for the type when absent). */
+  assumptions?: AssumptionOverrides;
 }
 
 export interface EnvelopeFeature {
@@ -54,7 +56,8 @@ const now = () => (typeof performance !== "undefined" ? performance.now() : Date
 
 export function computeAll(inp: ComputeInputs): ComputeResult {
   const t0 = now();
-  const floors = inp.floors ?? DEFAULT_FLOORS;
+  const asm = resolveAssumptions(inp.type, inp.assumptions);
+  const floors = inp.floors ?? { groundM: asm.groundFloorM, typicalM: asm.typicalFloorM };
   const drawn = openRing(inp.plot);
   const [lon0, lat0] = drawn.length ? centroidLngLat(drawn) : [0, 0];
   const f = makeFrame(lon0, lat0);
@@ -156,14 +159,12 @@ export interface DesignResult {
   summary: { pass: number; fail: number; info: number };
 }
 
-/** Assumptions shared by generator and checker inputs (design choices, not law). */
-export const CHECK_ASSUMPTIONS = { permeableShare: 0.6 } as const;
-
-export function computeDesigns(r: ComputeResult, inp: { type: BuildingType; bonusPcts?: number[]; station?: StationResult | null }): DesignResult[] {
+export function computeDesigns(r: ComputeResult, inp: { type: BuildingType; bonusPcts?: number[]; station?: StationResult | null; assumptions?: AssumptionOverrides }): DesignResult[] {
   if (r.status !== "ok" || !r.geometry || !r.gate) return [];
   const g = r.geometry;
   const fr = makeFrame(g.origin[0], g.origin[1]);
-  const designs = generateDesigns({ ring: g.ring, specs: g.specs, type: inp.type, plotAreaM2: r.plotAreaM2, far: r.far, gate: r.gate });
+  const a = resolveAssumptions(inp.type, inp.assumptions);
+  const designs = generateDesigns({ ring: g.ring, specs: g.specs, type: inp.type, plotAreaM2: r.plotAreaM2, far: r.far, gate: r.gate, a });
   const roadWidths = Object.fromEntries(r.roadEdges.map((e) => [e.edge, e.widthM]));
   return designs.map((d) => {
     // Report the binding edge as the DRAWN edge (what the user sees and the labels use).
@@ -189,11 +190,12 @@ export function computeDesigns(r: ComputeResult, inp: { type: BuildingType; bonu
           openAirStalls: d.parking.openAirStalls,
           station: inp.station ?? null,
           assumptions: {
-            permeableShare: CHECK_ASSUMPTIONS.permeableShare,
-            efficiency: DESIGN_DEFAULTS.efficiency[inp.type],
-            condoUnitM2: DESIGN_DEFAULTS.condoUnitM2,
-            hotelRoomM2: DESIGN_DEFAULTS.hotelRoomM2,
-            parkingStallM2: DESIGN_DEFAULTS.parkingStallM2,
+            permeableShare: a.permeableShare,
+            efficiency: a.efficiency,
+            condoUnitM2: a.condoUnitM2,
+            hotelRoomM2: a.hotelRoomM2,
+            parkingStallM2: a.parkingStallM2,
+            parkingInFar: a.parkingInFar,
           },
         })
       : [];

@@ -103,7 +103,7 @@ export class EngineClient {
     let designs: DesignResult[] | undefined;
     let wi: WhatIf[] | undefined;
     if (j.kind === "full") {
-      designs = compute.status === "ok" ? computeDesigns(compute, { type: j.inp.type, bonusPcts: j.inp.bonusPcts, station: j.station }) : [];
+      designs = compute.status === "ok" ? computeDesigns(compute, { type: j.inp.type, bonusPcts: j.inp.bonusPcts, station: j.station, assumptions: j.inp.assumptions }) : [];
       wi = j.wantWhatIfs && compute.status === "ok" && verdictFor(compute, designs, null).colour !== "green" ? whatIfs(j.inp, compute, designs, j.station) : [];
     }
     if (j.id >= this.latest[j.kind]) this.onResult({ id: j.id, kind: j.kind, compute, designs, whatIfs: wi, ms });

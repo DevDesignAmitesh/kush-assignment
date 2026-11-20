@@ -5,6 +5,7 @@ import { edges, dist, type XY } from "../geo";
 import { capsule, multiArea, type MultiPolygon, type Polygon } from "../polygon";
 import { openSpace, parkingRequired, type BuildingType } from "../far";
 import type { FloorHeights } from "../envelope";
+import { defaultAssumptions, type Assumptions } from "../assumptions";
 
 export type FloorUse = "lobby" | "parking" | "residential" | "office" | "hotel" | "amenity";
 
@@ -49,7 +50,8 @@ export interface Design {
   footprintShrunkForOpenSpace: boolean;
 }
 
-/** Design assumptions (BUILD_PLAN §4.7, §6.1). */
+/** Fixed design choices (BUILD_PLAN §4.7, §6.1). The editable ones live in ../assumptions; the values here are
+ *  their defaults, kept for callers that have no overrides. */
 export const DESIGN_DEFAULTS = {
   efficiency: { condo: 0.75, office: 0.8, hotel: 0.65 } as Record<BuildingType, number>,
   condoUnitM2: 35,
@@ -64,8 +66,8 @@ export const DESIGN_DEFAULTS = {
   insetPrecisionM: 0.1,
 } as const;
 
-export function floorHeightsFor(type: BuildingType): FloorHeights {
-  return { groundM: 4.5, typicalM: type === "office" ? 3.6 : 3.0 };
+export function floorHeightsFor(type: BuildingType, a: Assumptions = defaultAssumptions(type)): FloorHeights {
+  return { groundM: a.groundFloorM, typicalM: a.typicalFloorM };
 }
 
 /** Uniform inward offset by d: polygon minus capsules of every boundary edge (outer rings and holes). */
@@ -106,11 +108,11 @@ export function intersect(a: MultiPolygon, b: MultiPolygon): MultiPolygon {
 }
 
 /** Net area and units / rooms from the non-parking, non-lobby floors. */
-export function programmeFor(type: BuildingType, floors: DesignFloor[]): Design["programme"] {
+export function programmeFor(type: BuildingType, floors: DesignFloor[], a: Assumptions = defaultAssumptions(type)): Design["programme"] {
   const usable = floors.filter((f) => f.use === "residential" || f.use === "office" || f.use === "hotel").reduce((s, f) => s + f.areaM2, 0);
-  const net = usable * DESIGN_DEFAULTS.efficiency[type];
-  if (type === "condo") return { netAreaM2: net, units: Math.floor(net / DESIGN_DEFAULTS.condoUnitM2) };
-  if (type === "hotel") return { netAreaM2: net, rooms: Math.floor(net / DESIGN_DEFAULTS.hotelRoomM2) };
+  const net = usable * a.efficiency;
+  if (type === "condo") return { netAreaM2: net, units: Math.floor(net / a.condoUnitM2) };
+  if (type === "hotel") return { netAreaM2: net, rooms: Math.floor(net / a.hotelRoomM2) };
   return { netAreaM2: net };
 }
 
@@ -120,24 +122,24 @@ export const mainUse = (type: BuildingType): FloorUse => (type === "condo" ? "re
  * Assign floor uses bottom-up: parking floors until the required stalls fit (up to maxParkingFloors), ground
  * floor becomes the lobby when no parking is needed there, the rest is the main use. Returns stalls provided.
  */
-export function assignUses(type: BuildingType, floors: DesignFloor[], maxParkingFloors: number, extraStalls = 0): { provided: number; required: number; note?: string } {
+export function assignUses(type: BuildingType, floors: DesignFloor[], maxParkingFloors: number, extraStalls = 0, a: Assumptions = defaultAssumptions(type)): { provided: number; required: number; note?: string } {
   for (const f of floors) f.use = mainUse(type);
   const gfa = floors.reduce((s, f) => s + f.areaM2, 0);
   // Two passes: parking depends on units, units depend on which floors are parking.
   let required = 0;
   let provided = extraStalls;
   for (let pass = 0; pass < 2; pass++) {
-    const prog = programmeFor(type, floors);
-    const p = parkingRequired({ type, gfaM2: gfa, units: prog.units, avgUnitM2: DESIGN_DEFAULTS.condoUnitM2, rooms: prog.rooms });
+    const prog = programmeFor(type, floors, a);
+    const p = parkingRequired({ type, gfaM2: gfa, units: prog.units, avgUnitM2: a.condoUnitM2, rooms: prog.rooms });
     required = p.required;
-    let need = Math.max(0, required - extraStalls) * DESIGN_DEFAULTS.parkingStallM2;
+    let need = Math.max(0, required - extraStalls) * a.parkingStallM2;
     provided = extraStalls;
     for (let i = 0; i < floors.length; i++) {
       const f = floors[i];
       if (i < maxParkingFloors && need > 0) {
         f.use = "parking";
         need -= f.areaM2;
-        provided += Math.floor(f.areaM2 / DESIGN_DEFAULTS.parkingStallM2);
+        provided += Math.floor(f.areaM2 / a.parkingStallM2);
       } else f.use = i === 0 ? "lobby" : mainUse(type);
     }
   }

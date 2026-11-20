@@ -49,13 +49,15 @@ export function Legend() {
   const mode = useStore((s) => s.mapStyle);
   const crossing = useStore((s) => (s.site?.highlights.crossingRoads.length ?? 0) > 0);
   const hasEnvelope = useStore((s) => (s.compute?.features.length ?? 0) > 0);
-  const hasDesign = useStore((s) => s.designs.some((d) => d.design.id === s.selectedDesign && d.design.buildable));
+  const layers = useStore((s) => s.layers);
+  const hasDesign = useStore((s) => s.designs.some((d) => d.design.id === s.selectedDesign && d.design.buildable)) && layers.design;
 
   const plotRows: Row[] = [
     { kind: "outline", color: "#e4572e", label: "Your plot" },
     { kind: "fill", color: `${COLORS.plotClear}88`, label: "Free of buildings" },
     { kind: "hatch", color: COLORS.plotBuilt, label: "Built over" },
-    ...(hasEnvelope ? [{ kind: "fill" as Kind, color: `${COLORS.envelope}99`, label: "Allowed space" }] : []),
+    ...(hasEnvelope && layers.envelope ? [{ kind: "fill" as Kind, color: `${COLORS.envelope}99`, label: "Allowed space" }] : []),
+    ...(hasEnvelope && layers.setbacks ? [{ kind: "fill" as Kind, color: "#0e749059", label: "Setback strip" }] : []),
     ...(crossing ? [{ kind: "line" as Kind, color: COLORS.crossing, label: "Road in plot" }] : []),
     ...(hasDesign
       ? [
