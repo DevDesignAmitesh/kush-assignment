@@ -1,5 +1,26 @@
 # PROGRESS.md: status report for the planning session
 
+## Feedback round (20 Nov, evening)
+
+Amitesh's feedback after v1, each item fixed, checked and pushed on his word (branch `feedback-fixes`, fast-forwarded into `main`, Vercel auto-deploy, checked on the live site):
+
+| Feedback | Result | Commit |
+|---|---|---|
+| Landing page should say what the app does, to the point | Copy rewritten; "Coming next" badges removed (all 4 steps were live) | `e134e16` |
+| Expert mode fills the whole phone screen | One bottom sheet (45 %) with Inputs / Designs tabs and Hide; 2-row header; map framing uses the whole map | `e134e16` |
+| Fix the Compare screen | One column per design; reason shown for a design that can't be built; checks, "limited by", "Show on map"; bottom sheet on phones | `d014795` |
+| Landing page in skill-issue.in's layout and styling | Framed card, dark hero with italic serif title, filter pills, row cards; own content and art | `d014795` |
+| Guided tour for first-time users | 10 steps, only on request (Tour / "?" button, `/tool?tour=1`): fly to an empty lot, Draw, a hand on each corner, road, verdict, model, Expert designs, Compare | `153a363` |
+| (found by the tour) | Road-edge name came from a cross street at junctions ("Soi Ari" for Phahon Yothin Road); fixed with a regression test | `153a363` |
+
+- **Verified:** 116 tests, lint, typecheck and build pass. Headless Chrome on the dev server and the production build, desktop (1440 px) and phone (390 px); the full tour ran end to end with real mouse events, also on the live site. No page errors.
+- **Screenshots:** `docs/screenshots/0-landing.jpg`, `7-tour.jpg`, `8-tour-phone.jpg`, `9-expert-phone.jpg` added and `4-compare.jpg` replaced (production build); README updated.
+- **Out of date below:** §6 "Expert on a phone: still little map" (fixed above).
+- **AI misses logged:** #42-#47.
+
+---
+
+
 Generated 2026-11-20 14:15 IST. Round: **planning review 12:15, decisions 1-5** (H.3 cut, H.2 toggles, editable assumptions, M5 polish, M7 screenshots). Evidence comes from fresh `test` / `lint` / `build` runs at **14:08**, a **clean-copy build at 14:12** (only files git would commit: `git ls-files -co --exclude-standard`, fresh `bun install --frozen-lockfile`), and headless Chrome on `http://localhost:3000` (dev server 13:40-13:55, production build 13:58-14:10). Overwritten each time. Not deployed, not pushed. The planning session's repo prep (root `.gitignore`, `README.md`, `research/sources/README.md`, CLAUDE.md hosting rule) is kept; README files were only added to.
 
 **Clock:** 24 h 35 m left at 14:14 IST (deadline 2026-11-21 09:19 UTC).
