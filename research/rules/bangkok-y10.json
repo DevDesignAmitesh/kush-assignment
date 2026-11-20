@@ -1,0 +1,526 @@
+{
+  "id": "bkk-2556-y10",
+  "jurisdiction": "Bangkok, Thailand",
+  "plan": "Bangkok Comprehensive Plan B.E. 2556 (2013), 3rd revision, Royal Gazette vol.130 part 41 kor, 16 May 2013",
+  "lockedOn": "2026-11-19",
+  "verificationLevels": {
+    "PRIMARY": "read in the Thai Royal Gazette scan (research/sources/bkk-comprehensive-plan-2556-gazette.pdf)",
+    "PRIMARY-EN": "read in the JICA English translation of the Ministerial Regulations, consolidated 2008",
+    "PRIMARY-BMA": "read in the Bangkok Building Control Ordinance 2544 text (research/sources/bma-building-control-ordinance-2544.pdf)",
+    "SECONDARY": "blogs/industry sites only; provisional"
+  },
+  "zone": {
+    "code": "ย.10",
+    "codeLatin": "Y10",
+    "nameTh": "ที่ดินประเภทที่อยู่อาศัยหนาแน่นมาก",
+    "nameEn": "Very-high-density residential",
+    "colour": "#8B4513",
+    "far": {
+      "max": 8,
+      "source": "City plan 2556 ข้อ 17 (1), gazette p.37",
+      "level": "PRIMARY"
+    },
+    "osr": {
+      "minPctOfTotalFloorArea": 4,
+      "source": "City plan 2556 ข้อ 17 (2), gazette p.37",
+      "level": "PRIMARY"
+    },
+    "permeable": {
+      "minPctOfRequiredOpenSpace": 50,
+      "source": "City plan 2556 ข้อ 17 (2), gazette p.37",
+      "level": "PRIMARY"
+    },
+    "farBonus": {
+      "combinedMaxPct": 20,
+      "source": "City plan 2556 ข้อ 51-57, gazette pp.77-79",
+      "level": "PRIMARY",
+      "options": [
+        {
+          "id": "affordable-housing",
+          "clause": "ข้อ 52",
+          "maxPct": 20,
+          "extraFloorAreaPerUnitProvided": 4
+        },
+        {
+          "id": "public-open-space",
+          "clause": "ข้อ 53",
+          "maxPct": 20,
+          "extraFloorAreaPerUnitProvided": 5,
+          "zones": [
+            "ย.8",
+            "ย.9",
+            "ย.10",
+            "พ.2",
+            "พ.3",
+            "พ.4",
+            "พ.5"
+          ]
+        },
+        {
+          "id": "park-and-ride",
+          "clause": "ข้อ 54",
+          "maxPct": 20,
+          "m2PerPublicParkingSpace": 30,
+          "stationsWithin500m": [
+            "Thailand Cultural Centre",
+            "On Nut",
+            "Lat Krabang",
+            "Hua Mak",
+            "Bang Bamru",
+            "Taling Chan",
+            "Udom Suk",
+            "Bearing"
+          ]
+        },
+        {
+          "id": "rainwater-retention",
+          "clause": "ข้อ 55",
+          "pctPerCubicMetrePer50m2Land": 5,
+          "maxPct": 20
+        },
+        {
+          "id": "energy-certified",
+          "clause": "ข้อ 56",
+          "pctByLevel": {
+            "1": 5,
+            "2": 10,
+            "3": 15,
+            "4": 20
+          }
+        }
+      ]
+    },
+    "useLimits": [
+      {
+        "buildingType": "condo",
+        "allowed": true,
+        "note": "No size/road limit in ย.10 (contrast ย.7 ข้อ 14 (11))",
+        "source": "ข้อ 17 prohibited-use list, pp.35-37",
+        "level": "PRIMARY"
+      },
+      {
+        "buildingType": "hotel",
+        "condition": "rooms > 80",
+        "requires": {
+          "anyOf": [
+            {
+              "roadWidthMin": 12
+            },
+            {
+              "stationWithinM": 500
+            }
+          ]
+        },
+        "source": "ข้อ 17 (8), p.36",
+        "level": "PRIMARY"
+      },
+      {
+        "buildingType": "office",
+        "condition": "floorArea > 10000",
+        "requires": {
+          "anyOf": [
+            {
+              "roadWidthMin": 12
+            },
+            {
+              "stationWithinM": 500
+            }
+          ]
+        },
+        "source": "ข้อ 17 (10), p.36",
+        "level": "PRIMARY"
+      },
+      {
+        "buildingType": "commercial",
+        "condition": "5000 < floorArea <= 10000",
+        "requires": {
+          "anyOf": [
+            {
+              "roadWidthMin": 12
+            },
+            {
+              "stationWithinM": 500
+            }
+          ]
+        },
+        "source": "ข้อ 17 (9)(a), p.36",
+        "level": "PRIMARY"
+      },
+      {
+        "buildingType": "commercial",
+        "condition": "floorArea > 10000",
+        "requires": {
+          "anyOf": [
+            {
+              "roadWidthMin": 16
+            },
+            {
+              "stationWithinM": 500
+            }
+          ]
+        },
+        "source": "ข้อ 17 (9)(b), p.36",
+        "level": "PRIMARY"
+      }
+    ]
+  },
+  "buildingControl": {
+    "definitions": {
+      "highRiseMinHeightM": {
+        "value": 23,
+        "source": "MR 33 ข้อ 1",
+        "level": "PRIMARY-EN"
+      },
+      "extraLargeMinFloorAreaM2": {
+        "value": 10000,
+        "source": "MR 33 ข้อ 1",
+        "level": "PRIMARY-EN"
+      },
+      "largeBuilding": {
+        "value": "floorArea > 2000, or height >= 15 and 1000 < floorArea <= 2000",
+        "source": "MR 55 ข้อ 1",
+        "level": "PRIMARY-EN"
+      }
+    },
+    "highRiseOrExtraLarge": {
+      "roadAccess": [
+        {
+          "ifTotalFloorAreaMax": 30000,
+          "frontageMinM": 12,
+          "roadWidthMinM": 10
+        },
+        {
+          "ifTotalFloorAreaOver": 30000,
+          "frontageMinM": 12,
+          "roadWidthMinM": 18
+        }
+      ],
+      "fireRoadAroundBuildingM": 6,
+      "setbackFromAllBoundariesM": 6,
+      "farCap": 10,
+      "vacantLandMinPctOfPlot": {
+        "residential": 30,
+        "nonResidential": 10
+      },
+      "source": "MR 33 (am. MR 50, 1997) ข้อ 2-6",
+      "level": "PRIMARY-EN"
+    },
+    "openSpaceMinPctOfLargestFloor": {
+      "residential": 30,
+      "nonResidential": 10,
+      "source": "MR 55 ข้อ 33",
+      "level": "PRIMARY-EN"
+    },
+    "roadSetback": {
+      "source": "MR 55 ข้อ 41",
+      "level": "PRIMARY-EN",
+      "appliesTo": "buildings > 2 storeys or > 8 m (and commercial/row/public buildings)",
+      "bands": [
+        {
+          "roadWidthLtM": 6,
+          "minM": 3,
+          "from": "centreline",
+          "note": "first paragraph, all buildings"
+        },
+        {
+          "roadWidthLtM": 10,
+          "minM": 6,
+          "from": "centreline"
+        },
+        {
+          "roadWidthGteM": 10,
+          "roadWidthLteM": 20,
+          "minFractionOfRoadWidth": 0.1,
+          "from": "roadBoundary"
+        },
+        {
+          "roadWidthGteM": 20,
+          "minM": 2,
+          "from": "roadBoundary"
+        }
+      ]
+    },
+    "heightVsRoad": {
+      "rule": "height at any point <= 2 x horizontal distance from that point to the opposite boundary of the nearest public road",
+      "multiplier": 2,
+      "twoRoads": "if roads <= 60 m apart, use the wider road (building width along it <= 60 m)",
+      "corner": "use the wider road; length along the narrower road <= 60 m",
+      "source": "MR 55 ข้อ 44-46",
+      "level": "PRIMARY-EN"
+    },
+    "boundaryDistance": {
+      "wallWithOpenings": [
+        {
+          "heightMaxM": 9,
+          "minM": 2
+        },
+        {
+          "heightGtM": 9,
+          "heightLtM": 23,
+          "minM": 3
+        }
+      ],
+      "solidWallMinM": 0.5,
+      "source": "MR 55 ข้อ 50",
+      "level": "PRIMARY-EN"
+    },
+    "parkingBangkok": {
+      "condoSpacesPerUnit": 1,
+      "largeBuildingM2PerSpace": 120,
+      "officeM2PerSpace": 60,
+      "rule": "required = max(per-use total, floorArea / 120) for large buildings",
+      "stall": {
+        "perpendicular": [
+          2.4,
+          5
+        ],
+        "parallel": [
+          2.4,
+          6
+        ],
+        "angled": [
+          2.4,
+          5.5
+        ]
+      },
+      "clearHeightMinM": 2.1,
+      "source": "MR 7 ข้อ 2-3 (Bangkok), MR 41 ข้อ 2, 4",
+      "level": "PRIMARY-EN",
+      "condoTriggerUnitM2Over": 60,
+      "condoTriggerSource": "MR 7 ข้อ 2 (3), (7): condo units > 60 m2, or a large building (RULES.md Parking table)",
+      "hotel": {
+        "firstRooms": 30,
+        "spacesForFirstRooms": 10,
+        "thenRoomsPerSpace": 5,
+        "upToRooms": 100,
+        "aboveRoomsPerSpace": 10,
+        "source": "MR 7 ข้อ 3 (1)(B), Bangkok paragraph 2 (JICA EN translation, research/sources/jica-thai-building-control-MRs-en-2008.pdf, MR 7 section, printed p.5): rate of first paragraph for the first 100 rooms, then 1 car per 10 rooms, fractions rounded up",
+        "note": "fractions of 5 / 10 rooms count as a full 5 / 10"
+      }
+    }
+  },
+  "planLevelWarnings": [
+    {
+      "id": "l2-road-planting",
+      "rule": "plots on roads listed in the plan annex keep >= 2 m planted strip from the road boundary",
+      "source": "City plan ข้อ 40 (1), p.74",
+      "level": "PRIMARY",
+      "enforced": false,
+      "why": "road list in annex not yet extracted"
+    },
+    {
+      "id": "planned-roads",
+      "rule": "land inside planned road right-of-way (12-60 m, types ก-ช) usable only for transport",
+      "source": "City plan ข้อ 44-45, p.75",
+      "level": "PRIMARY",
+      "enforced": false
+    }
+  ],
+  "bmaOrdinance2544": {
+    "level": "PRIMARY-BMA",
+    "source": "ข้อบัญญัติกรุงเทพมหานคร เรื่อง ควบคุมอาคาร พ.ศ. 2544, research/sources/bma-building-control-ordinance-2544.pdf (OIC copy, Dec 2016)",
+    "enforced": true,
+    "precedence": "stricter of BMA ordinance and MR 55 applies",
+    "definitions": {
+      "roadWidth": {
+        "text": "total width between land lines incl. carriageway, footpath, planting strip, ditches",
+        "clause": "ข้อ 5 (4)"
+      },
+      "height": {
+        "text": "vertical, from road level to the highest part of the building",
+        "clause": "ข้อ 5 (7)"
+      },
+      "openSpace": {
+        "text": "no roof/cover; may hold ponds, wastewater tank, garbage area, parking outside the building; structures <= 1.20 m without roof count",
+        "clause": "ข้อ 5 (36)"
+      }
+    },
+    "heightVsRoad": {
+      "multiplier": 2,
+      "measureTo": "opposite edge of nearest public road",
+      "clause": "ข้อ 49 ¶1"
+    },
+    "wideRoadException": {
+      "roadWidthMinM": 80,
+      "withinM": 100,
+      "accessWidthMinM": 12,
+      "rule": "use the widest road's width",
+      "clause": "ข้อ 49 ¶2",
+      "modelled": false
+    },
+    "roadSetback": {
+      "clause": "ข้อ 50",
+      "exempt": "residential <= 3 storeys and <= 10 m and <= 1000 m2",
+      "bands": [
+        {
+          "roadWidthLtM": 6,
+          "minM": 3,
+          "from": "centreline",
+          "appliesTo": "all buildings"
+        },
+        {
+          "roadWidthLtM": 10,
+          "minM": 6,
+          "from": "centreline"
+        },
+        {
+          "roadWidthGteM": 10,
+          "roadWidthLteM": 20,
+          "minFractionOfRoadWidth": 0.1,
+          "from": "roadBoundary"
+        },
+        {
+          "roadWidthGtM": 20,
+          "minM": 2,
+          "from": "roadBoundary"
+        }
+      ]
+    },
+    "cornerChamfer": {
+      "roadWidthM": [
+        3,
+        8
+      ],
+      "angleLtDeg": 135,
+      "chamferMinM": 4,
+      "clause": "ข้อ 51",
+      "modelled": false
+    },
+    "openSpaceMinPctOfLand": {
+      "residential": 30,
+      "nonResidential": 10,
+      "mixedWithResidential": 30,
+      "clause": "ข้อ 52 (1)(2)"
+    },
+    "notOnPublicRoad": {
+      "frontOpenSpaceM": {
+        "upTo3Storeys": 6,
+        "over3Storeys": 12
+      },
+      "contiguousMinFractionOfPerimeter": 0.1667,
+      "accessRoadMinM": 6,
+      "clearHeightIfUnderBuildingM": 5,
+      "clause": "ข้อ 52 (6)"
+    },
+    "roadFace": {
+      "rule": "road-facing building side > 1/8 of building outer perimeter, and <= 20 m from the public road",
+      "minFractionOfPerimeter": 0.125,
+      "maxDistanceFromRoadM": 20,
+      "clause": "ข้อ 53"
+    },
+    "boundaryOpenings": [
+      {
+        "storeysMax": 2,
+        "heightMaxM": 9,
+        "minM": 2
+      },
+      {
+        "storeysMin": 3,
+        "orHeightGtM": 9,
+        "minM": 3
+      }
+    ],
+    "boundaryOpeningsClause": "ข้อ 54",
+    "clearanceAllRound": [
+      {
+        "heightMaxM": 15,
+        "minM": 1,
+        "exempt": "houses <= 300 m2"
+      },
+      {
+        "heightGtM": 15,
+        "minM": 2
+      }
+    ],
+    "clearanceAllRoundNote": "may overlap other open space except for high-rise / extra-large buildings (MR 33 6 m governs there)",
+    "clearanceAllRoundClause": "ข้อ 55"
+  },
+  "otherZonesFarOsr": {
+    "level": "SECONDARY unless marked",
+    "source": "thaipropertymentor.com/archives/36461 (2013 values quoted as in force)",
+    "table": {
+      "ย.1": [
+        1,
+        40
+      ],
+      "ย.2": [
+        1.5,
+        20
+      ],
+      "ย.3": [
+        2.5,
+        12.5
+      ],
+      "ย.4": [
+        3,
+        10,
+        "PRIMARY p.20"
+      ],
+      "ย.5": [
+        4,
+        7.5
+      ],
+      "ย.6": [
+        4.5,
+        6.5,
+        "PRIMARY p.26"
+      ],
+      "ย.7": [
+        5,
+        6
+      ],
+      "ย.8": [
+        6,
+        5,
+        "PRIMARY p.32"
+      ],
+      "ย.9": [
+        7,
+        4.5,
+        "PRIMARY p.35"
+      ],
+      "ย.10": [
+        8,
+        4,
+        "PRIMARY p.37"
+      ],
+      "พ.1": [
+        5,
+        6
+      ],
+      "พ.2": [
+        6,
+        5
+      ],
+      "พ.3": [
+        7,
+        4.5
+      ],
+      "พ.4": [
+        8,
+        4
+      ],
+      "พ.5": [
+        null,
+        null,
+        "not found"
+      ],
+      "ศ.1": [
+        3,
+        10
+      ],
+      "ศ.2": [
+        4,
+        7.5
+      ]
+    }
+  },
+  "interpretations": [
+    "Road width = right-of-way (เขตทาง), property line to property line.",
+    "'not less than' read as >=, 'less than' as <.",
+    "Required open space = unroofed ground-level area; podium roofs do not count.",
+    "FAR floor area = gross area of all above-ground storeys incl. above-ground parking; basements flagged as an assumption.",
+    "BMA ordinance 2544 and MR 55 both apply; the stricter wins (open space = 30% of land).",
+    "Height: MR 33 roof-deck definition for the 23 m high-rise threshold; BMA road-level-to-highest-part for the 2x road rule; flat roofs, roof structures ignored."
+  ]
+}

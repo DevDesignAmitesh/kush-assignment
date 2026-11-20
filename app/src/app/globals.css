@@ -1,0 +1,234 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+html,
+body {
+  margin: 0;
+  background: #fafafa;
+  color: #171717;
+  font-family: var(--font-sans);
+}
+
+/* ---------- buttons ---------- */
+.btn-ripple {
+  position: absolute;
+  border-radius: 9999px;
+  background: currentColor;
+  opacity: 0.25;
+  transform: scale(0);
+  pointer-events: none;
+  animation: ripple 550ms ease-out forwards;
+}
+@keyframes ripple {
+  to {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+.btn-pulse {
+  animation: pulse-ring 1.8s ease-out infinite;
+}
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgb(228 87 46 / 0.55);
+  }
+  70%,
+  100% {
+    box-shadow: 0 0 0 10px rgb(228 87 46 / 0);
+  }
+}
+
+/* ---------- panels / toasts ---------- */
+.panel-in {
+  animation: fade-up 260ms ease-out both;
+}
+.guide-in {
+  animation: fade-up 220ms ease-out both;
+}
+.toast-in {
+  animation: toast 2600ms ease-in-out both;
+}
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+@keyframes toast {
+  0% {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.96);
+  }
+  8%,
+  85% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+.spinner {
+  width: 22px;
+  height: 22px;
+  border-radius: 9999px;
+  border: 2px solid #d4d4d4;
+  border-top-color: #e4572e;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---------- landing page illustrations ---------- */
+.reveal {
+  animation: fade-up 600ms ease-out both;
+}
+.draw-path {
+  stroke-dasharray: 400;
+  stroke-dashoffset: 400;
+  animation: draw-path 4s ease-in-out infinite;
+}
+@keyframes draw-path {
+  0% {
+    stroke-dashoffset: 400;
+  }
+  55%,
+  85% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+.fill-late {
+  animation: fill-late 4s ease-in-out infinite;
+}
+@keyframes fill-late {
+  0%,
+  55% {
+    opacity: 0;
+  }
+  65%,
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+.pop {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pop 4s ease-out infinite;
+}
+@keyframes pop {
+  0% {
+    transform: scale(0);
+  }
+  6%,
+  85% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+.blink-edge {
+  animation: blink-edge 1.6s ease-in-out infinite;
+}
+@keyframes blink-edge {
+  50% {
+    opacity: 0.25;
+  }
+}
+.cycle {
+  animation: cycle 4.5s steps(1) infinite;
+}
+@keyframes cycle {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  33.3% {
+    opacity: 0.25;
+  }
+}
+.rise {
+  transform-box: fill-box;
+  transform-origin: bottom;
+  animation: rise 4s ease-out infinite;
+}
+@keyframes rise {
+  0% {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+  12%,
+  85% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+.tick-in {
+  transform-box: fill-box;
+  transform-origin: left center;
+  animation: tick-in 4s ease-out infinite;
+}
+@keyframes tick-in {
+  0% {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  10%,
+  85% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}
+
+/* prefers-reduced-motion: no UI animations (camera moves are instant too, ui/device). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}
+
+/* "Updating…" bar on the result card while a newer engine result is on its way. */
+.shimmer {
+  background: linear-gradient(90deg, transparent 0%, #e4572e 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1s linear infinite;
+}
+@keyframes shimmer {
+  from { background-position: 100% 0; }
+  to { background-position: -100% 0; }
+}

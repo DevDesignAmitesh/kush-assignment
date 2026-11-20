@@ -1,0 +1,54 @@
+{
+  "purpose": "Rail lines whose stations count as mass transit for the ข้อ 17 500 m conditions although OpenMapTiles tags them railway=station like ordinary SRT rail (tiles carry no line names). Matched by exact English station name against subclass 'station' POIs only (never 'halt'). Pink and Yellow monorail stations are NOT listed here: they are recognised from tile geometry (station within 80 m of transit/monorail track).",
+  "checked": "2026-11-19",
+  "lines": [
+    {
+      "line": "Airport Rail Link (City Line)",
+      "source": "https://en.wikipedia.org/wiki/Airport_Rail_Link_(Bangkok) (station table A1-A6 read verbatim; Ratchaprarop and Phaya Thai from the route map, infobox says 8 stations)",
+      "stations": [
+        "Suvarnabhumi",
+        "Lat Krabang",
+        "Ban Thap Chang",
+        "Hua Mak",
+        "Ramkhamhaeng",
+        "Makkasan",
+        "Ratchaprarop",
+        "Phaya Thai"
+      ]
+    },
+    {
+      "line": "SRT Dark Red Line",
+      "source": "https://en.wikipedia.org/wiki/Red_Lines_(Bangkok) (navigation box; stations in normal type = operating)",
+      "stations": [
+        "Krung Thep Aphiwat",
+        "Chatuchak",
+        "Wat Samian Nari",
+        "Bang Khen",
+        "Thung Song Hong",
+        "Lak Si",
+        "Kan Kheha",
+        "Don Mueang",
+        "Lak Hok",
+        "Rangsit"
+      ]
+    },
+    {
+      "line": "SRT Light Red Line",
+      "source": "https://en.wikipedia.org/wiki/Red_Lines_(Bangkok) (navigation box; italic Bang Kruai-EGAT and Phra Ram 6 = not operating, excluded)",
+      "stations": [
+        "Krung Thep Aphiwat",
+        "Bang Son",
+        "Bang Bamru",
+        "Taling Chan"
+      ]
+    }
+  ],
+  "tileNameAliases": {
+    "note": "Tile (OSM English) spelling for a source name; matched exactly. Checked against the built stations file on 2026-11-19.",
+    "aliases": {
+      "Don Mueang": "Don Muang",
+      "Lak Hok": "Lak Hok (Rangsit U.)",
+      "Taling Chan": "Taling Chan Junction"
+    }
+  }
+}

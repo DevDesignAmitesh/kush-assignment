@@ -1,0 +1,39 @@
+# dependencies and builds
+node_modules/
+.next/
+out/
+build/
+coverage/
+.vercel/
+*.tsbuildinfo
+next-env.d.ts
+
+# secrets and local settings
+.env*
+!.env.example
+*.pem
+.claude/settings.local.json
+
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.log
+
+# generated at build time
+app/public/vendor/
+
+# headless test screenshots (34 MB); curated ones go in docs/screenshots/
+app/test-artifacts/
+
+# private: assignment text from General Machines and raw chat exports
+ASSIGNMENT_BRIEF.md
+ASSIGNMENT_DESCRIPTION.md
+2026-*.txt
+*.jsonl
+transcripts/
+
+# third-party PDFs: links are in research/sources/README.md
+research/sources/*.pdf
